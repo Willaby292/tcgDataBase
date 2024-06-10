@@ -14,6 +14,8 @@ connect = psycopg2.connect(
 cursor = connect.cursor()
 
 
+# TODO check to see if there is a better way to handle opening and closing file so that exeptions wont leave the file open https://www.youtube.com/watch?v=qUeud6DvOWI
+
 # Initialize the HS card Table
 initialize_sql_HS = open(r"C:\Users\xwill\OneDrive\Desktop\Scryfall2.0\initialize_cardsHS.sql",'r')
 cursor.execute(initialize_sql_HS.read())
@@ -51,8 +53,17 @@ insertCard = """
         %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
     );
 """
-insertRaces = """
+insertRace = """
     INSERT INTO races_HS (
+        race_id
+,       race_name
+
+    ) VALUES (
+        %s, %s
+    );
+"""
+insertRaceLink = """
+    INSERT INTO races_link_HS (
         card_id
 ,       race_id
 
@@ -70,57 +81,118 @@ insertMechanic = """
         %s, %s
     );
 """
+insertMechanicLink = """
+    INSERT INTO mechanics_link_HS (
+        card_id
+,       mechanic_id
+
+    ) VALUES (
+        %s, %s
+    );
+"""
+
+
 
 # Iterating through the json
 # list
+raceIdNum = 0
+emptyRaceDict = {}
+
+idEnumerator = 0
 
 mechanicIdNum = 0
-for i in data:
+emptyMechanicDict = {}
+
+# populates a value table and a link table for data that comes through cards.json as a list (race, mechanics, ect)
+def populateListValues (element, arr, idPrefix, insertStatement, insertLinkStatment, emptyDict):
+    global idEnumerator
+    if arr is not None:
+        for value in arr:
+            if value not in emptyDict:
+                idEnumerator += 1
+                id = f"{idPrefix}{idEnumerator}"
+                print(id)
+                cursor.execute(insertStatement, (
+                    id
+                ,   value
+                ))
+                emptyDict.update({value: id})
+            # populate link table
+            valueName = emptyDict.get(value)
+            cursor.execute(insertLinkStatment,(
+                element.get('dbfid')
+            ,   valueName
+            ))
+
+#should i be iterating through a single time and pulling data to every table or should i iterate through once for each table that i populate
+for enumerator, element in enumerate(data, 0):
 
     cursor.execute(insertCard, (
-        i.get('dbfId')
-    ,   i.get('id')
-    ,   i.get('name')
-    ,   i.get('type')
-    ,   i.get('cardClass')
-    ,   i.get('playerClass')
-    ,   i.get('collectible')
-    ,   i.get('set')
-    ,   i.get('rarity')
-    ,   i.get('cost')
-    ,   i.get('faction')
-    ,   i.get('race') # race is redundant, races has all minion race information. keep this until we make sure of that
-    ,   i.get('attack')
-    ,   i.get('health')
-    ,   i.get('durability')
-    ,   i.get('mercenary')
-    ,   i.get('mercenaryRole')
-    ,   i.get('text')
-    ,   i.get('flavor')
-    ,   i.get('artist')
+        element.get('dbfId')
+    ,   element.get('id')
+    ,   element.get('name')
+    ,   element.get('type')
+    ,   element.get('cardClass')
+    ,   element.get('playerClass')
+    ,   element.get('collectible')
+    ,   element.get('set')
+    ,   element.get('rarity')
+    ,   element.get('cost')
+    ,   element.get('faction')
+    ,   element.get('race') # race is redundant, races has all minion race information. keep this until we make sure of that
+    ,   element.get('attack')
+    ,   element.get('health')
+    ,   element.get('durability')
+    ,   element.get('mercenary')
+    ,   element.get('mercenaryRole')
+    ,   element.get('text')
+    ,   element.get('flavor')
+    ,   element.get('artist')
         ))
     
 
-    # fill races table
-    racesArr = i.get('races')
-    if racesArr is not None:
-        for race in racesArr:
-            cursor.execute(insertRaces, (
-                i.get('dbfId')
-            ,   race
-            ))
+    # populate races table
+    # racesArr = element.get('races')
+    # if racesArr is not None:
+    #     for raceIdNum, race in enumerate(racesArr, raceIdNum + 1):
+    #         if race not in emptyRaceDict:
+    #             raceId = f"r{raceIdNum}"
+    #             cursor.execute(insertRace, (
+    #                 raceId
+    #             ,   race
+    #             ))
+    #             emptyRaceDict.update({race: raceId})
+    #         # populate race link table
+    #         raceName = emptyRaceDict.get(race)
+    #         cursor.execute(insertRaceLink,(
+    #             element.get('dbfid')
+    #         ,   raceName
+    #         ))
+    raceArr = element.get('races')
+    populateListValues(element, raceArr, 'R', insertRace, insertRaceLink, emptyRaceDict)
 
-    # fill mechanics table
-    mechanicIdNum += 1
-    mechanicArr = i.get('mechanics')
-    if mechanicArr is not None:
-        for mechanic in mechanicArr:
-            if mechanic not in mechanicArr:
-                cursor.execute(insertMechanic, (
-                    'm' + str(mechanicIdNum)
-                ,   mechanic
-                ))
+    mechanicArr = element.get('mechanics')
+    populateListValues(element, mechanicArr, 'M', insertMechanic, insertMechanicLink, emptyMechanicDict)
 
+
+    # populate mechanics table
+    # mechanicArr = element.get('mechanics')
+    # if mechanicArr is not None:
+    #     for mechanic in mechanicArr:
+    #         if mechanic not in emptyMechanicDict:
+    #             mechanicIdNum += 1
+    #             mechanicId = f"m{mechanicIdNum}"
+    #             cursor.execute(insertMechanic, (
+    #                 mechanicId
+    #             ,   mechanic
+    #             ))
+    #             emptyMechanicDict.update({mechanic: mechanicId})
+    #         #populate mechanic link table
+    #         mechanicName = emptyMechanicDict.get(mechanic)
+    #         cursor.execute(insertMechanicLink, (
+    #             element.get('dbfId')
+    #         ,   mechanicName
+    #         ))
 
 
 

@@ -69,7 +69,7 @@ DROP TABLE IF EXISTS mechanics_link_HS CASCADE;
 
 CREATE TABLE IF NOT EXISTS mechanics_link_HS(
     card_id            INT
-,   mechanic_id        INT
+,   mechanic_id        TEXT
 ,   FOREIGN KEY(card_id)
         REFERENCES cards_HS(card_id)
 ,   FOREIGN KEY(mechanic_id)
@@ -105,21 +105,22 @@ CREATE TABLE IF NOT EXISTS counterpart_cards_HS(
         REFERENCES cards_HS(card_id)
 );
 
--- DROP TABLE IF EXISTS races_HS CASCADE;
-
--- CREATE TABLE IF NOT EXISTS races_HS(
---     race_id            TEXT PRIMARY KEY
--- );
-
 DROP TABLE IF EXISTS races_HS CASCADE;
 
 CREATE TABLE IF NOT EXISTS races_HS(
+    race_id     TEXT PRIMARY KEY
+,   race_name   TEXT
+);
+
+DROP TABLE IF EXISTS races_link_HS CASCADE;
+
+CREATE TABLE IF NOT EXISTS races_link_HS(
     card_id            INT
 ,   race_id            TEXT
 ,   FOREIGN KEY(card_id)
         REFERENCES cards_HS(card_id)
--- ,   FOREIGN KEY(race_id)
---         REFERENCES races_HS(race_id)
+,   FOREIGN KEY(race_id)
+        REFERENCES races_HS(race_id)
 );
 
 DROP TABLE IF EXISTS spellschools_HS CASCADE;
