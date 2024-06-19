@@ -1,1 +1,5 @@
 Queries.sql
+.env
+Test.js
+lastEpochCalcs.py
+node_modules/

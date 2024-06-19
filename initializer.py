@@ -1,35 +1,48 @@
 import psycopg2
 import json
+import requests # for handling api calls
+import subprocess
+import time
 from collections import defaultdict
 from mtgsdk import Card 
-from mtgsdk import Set 
-
-connect = psycopg2.connect(
-    database="postgres",
-    user="postgres",
-    port="5432",
-    host="localhost",
-    password="walvarez00"
-    )
-cursor = connect.cursor()
+from mtgsdk import Set
 
 
-# TODO check to see if there is a better way to handle opening and closing file so that exeptions wont leave the file open https://www.youtube.com/watch?v=qUeud6DvOWI
-
-# Initialize the HS card Table
-initialize_sql_HS = open(r"C:\Users\xwill\OneDrive\Desktop\Scryfall2.0\initialize_cardsHS.sql",'r')
-cursor.execute(initialize_sql_HS.read())
-
-
-# Opening JSON file
-f = open(r"C:\Users\xwill\OneDrive\Desktop\cards_enUS_TEST.json", encoding='utf-8')
-# returns JSON object as 
-# a dictionary
-data = json.load(f)
+insertCardRaw = """
+    INSERT INTO cards_HS_raw (
+        id
+    ,   collectible
+    ,   slug
+    ,   classId
+    ,   multiClassIds
+    ,   spellSchoolId
+    ,   cardTypeId
+    ,   cardSetId
+    ,   rarityId
+    ,   copyOfCardId
+    ,   attack
+    ,   health
+    ,   minionTypeId
+    ,   childIds
+    ,   artistName
+    ,   manaCost
+    ,   name
+    ,   text
+    ,   image
+    ,   imageGold
+    ,   flavorText
+    ,   cropImage
+    ,   keywordIds
+    ,   isZilliaxFunctionalModule
+    ,   isZilliaxCosmeticModule
+    ) VALUES (
+        %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
+    );
+"""
 
 insertCard = """
     INSERT INTO cards_HS (
-        card_id
+        dbfId
 ,       id
 ,       "name"
 ,       "type"
@@ -44,7 +57,7 @@ insertCard = """
 ,       attack
 ,       health
 ,       durability
-,       mercenary
+,       mercenary    
 ,       mercenary_role
 ,       text
 ,       flavor
@@ -71,7 +84,6 @@ insertRaceLink = """
         %s, %s
     );
 """
-
 insertMechanic = """
     INSERT INTO mechanics_HS (
         mechanic_id
@@ -91,67 +103,196 @@ insertMechanicLink = """
     );
 """
 
+def start_node_app():
+    process = subprocess.Popen(['node', 'start.js'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    time.sleep(5)  # Wait for the server to start
+
+    stdout, stderr = process.communicate(timeout=5)
+
+    print(stdout)
+    if stderr:
+        print("Errors:\n", stderr)
+    return process
+
+def get_jwt_token():
+    url = "http://localhost:3000/profile" #changed to http instead of https to fix SSL wrong version number error
+    response = requests.get(url, verify=False)  # Disable SSL verification for localhost
+    if response.status_code == 200:
+        data = response.json()
+        return data.get('accessToken')
+    else:
+        print(f"Failed to get JWT token: {response.status_code} - {response.text}")
+        return None
+
+
+def get_posts(token):
+    # this string needs to be created by adding all the criteria needed plus the token that is generated in OAuthToken.js
+    url = ''
+    #send request with request url and request method with the payload
+    try:
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            posts = response.json()
+            return posts
+        else:
+            print('Error:', response.status_code)
+            return None
+    except requests.exceptions.RequestException as e:
+        print('Error:', e)
+        return None
+
+
+
+def post_token_req():
+    url = 'https://oauth.battle.net/oauth/token'
+
+    data = {
+        'grant_type': 'authorization_code'
+    ,   'client_id': '453ffdc6dee448b493789f83217c764e'
+    ,   'client_secret': 'KPr86t49WXvb0RRIEdo0fULJl4FyXrrP'
+    ,   'code': 'USJRFPNYQRTQKXB8G405CVDWGBFT8NEHMJ'
+    ,   'state': ''
+    ,   'redirect_uri': 'https://develop.battle.net/documentation/hearthstone/game-data-apis'
+    }
+
+    headers = {
+        'Accept': 'application/json, text/plain, */*'
+    ,   'Accept-Encoding': 'gzip, deflate, br, zstd'
+    ,   'Accept-Language': 'en-US,en;q=0.9'
+    ,   'Authorization': 'Basic NDUzZmZkYzZkZWU0NDhiNDkzNzg5ZjgzMjE3Yzc2NGU6S1ByODZ0NDlXWHZiMFJSSUVkbzBmVUxKbDRGeVhyclA='
+    ,   'Content-Length': '253'
+    ,   'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    response = requests.post(url, headers=headers, data=data )
+
+    return response
+
+
+def main():
+
+    printIt = post_token_req()
+
+    print(printIt)
+    return
+    connect = psycopg2.connect(
+        database="postgres",
+        user="postgres",
+        port="5432",
+        host="localhost",
+        password="walvarez00"
+        )
+    cursor = connect.cursor()
+
+    # Initialize the HS card Table
+    initialize_sql_HS = open(r"C:\Users\xwill\OneDrive\Desktop\Scryfall2.0\initialize_cardsHS.sql",'r')
+    cursor.execute(initialize_sql_HS.read())
+
+    # this is commented out until i can close the server when I finish
+    start_node_app() 
+    
+    token = get_jwt_token()
+
+    print(token)
+
+    cards = get_posts(token)
+    allCardsList = cards.get('cards') # get post returns 4 dictionaries: cards, cardCount, pageCount, and page
+    
+    allKeys = []
+
+    if cards:
+        for card in allCardsList:
+            keyList = list(card.keys())
+            for key in keyList:
+                if key not in allKeys:
+                    allKeys.append(key)
+        # print(allKeys)
+            # cursor.execute(insertCardRaw, (
+            #     card.get('id')
+            # ,   card.get('collectible')
+            # ,   card.get('slug')
+            # ,   card.get('classId')
+            # ,   card.get('multiClassIds')
+            # ,   card.get('spellSchoolId')
+            # ,   card.get('cardTypeId')
+            # ,   card.get('cardSetId')
+            # ,   card.get('rarityId')
+            # ,   card.get('copyOfCardId')   
+            # ,   card.get('attack')
+            # ,   card.get('health')
+            # ,   card.get('minionTypeId')
+            # ,   card.get('childIds')
+            # ,   card.get('artistName')
+            # ,   card.get('manaCost')
+            # ,   card.get('name')
+            # ,   card.get('text')
+            # ,   card.get('image')
+            # ,   card.get('imageGold')
+            # ,   card.get('flavorText')
+            # ,   card.get('cropImage')
+            # ,   card.get('keywordIds')
+            # ,   card.get('isZilliaxFunctionalModule')
+            # ,   card.get('isZilliaxCosmeticModule')
+            # ))
+    else:
+        print('failed to fetch posts from api')
+
+    cursor.connection.commit()
+    cursor.close()
 
 
 # Iterating through the json
 # list
-raceIdNum = 0
-emptyRaceDict = {}
-
-idEnumerator = 0
-
-mechanicIdNum = 0
-emptyMechanicDict = {}
 
 # populates a value table and a link table for data that comes through cards.json as a list (race, mechanics, ect)
-def populateListValues (element, arr, idPrefix, insertStatement, insertLinkStatment, emptyDict):
-    global idEnumerator
-    if arr is not None:
-        for value in arr:
-            if value not in emptyDict:
-                idEnumerator += 1
-                id = f"{idPrefix}{idEnumerator}"
-                print(id)
-                cursor.execute(insertStatement, (
-                    id
-                ,   value
-                ))
-                emptyDict.update({value: id})
-            # populate link table
-            valueName = emptyDict.get(value)
-            cursor.execute(insertLinkStatment,(
-                element.get('dbfid')
-            ,   valueName
-            ))
+# def populateListValues (element, arr, idPrefix, insertStatement, insertLinkStatment, emptyDict):
+#     global idEnumerator
+#     if arr is not None:
+#         for value in arr:
+#             if value not in emptyDict:
+#                 idEnumerator += 1
+#                 id = f"{idPrefix}{idEnumerator}"
+#                 print(id)
+#                 cursor.execute(insertStatement, (
+#                     id
+#                 ,   value
+#                 ))
+#                 emptyDict.update({value: id})
+#             # populate link table
+#             valueName = emptyDict.get(value)
+#             cursor.execute(insertLinkStatment,(
+#                 element.get('dbfid')
+#             ,   valueName
+#             ))
 
 #should i be iterating through a single time and pulling data to every table or should i iterate through once for each table that i populate
-for enumerator, element in enumerate(data, 0):
+# for enumerator, element in enumerate(data, 0):
 
-    cursor.execute(insertCard, (
-        element.get('dbfId')
-    ,   element.get('id')
-    ,   element.get('name')
-    ,   element.get('type')
-    ,   element.get('cardClass')
-    ,   element.get('playerClass')
-    ,   element.get('collectible')
-    ,   element.get('set')
-    ,   element.get('rarity')
-    ,   element.get('cost')
-    ,   element.get('faction')
-    ,   element.get('race') # race is redundant, races has all minion race information. keep this until we make sure of that
-    ,   element.get('attack')
-    ,   element.get('health')
-    ,   element.get('durability')
-    ,   element.get('mercenary')
-    ,   element.get('mercenaryRole')
-    ,   element.get('text')
-    ,   element.get('flavor')
-    ,   element.get('artist')
-        ))
+#     cursor.execute(insertCard, (
+#         element.get('dbfId')
+#     ,   element.get('id')
+#     ,   element.get('name')
+#     ,   element.get('type')
+#     ,   element.get('cardClass')
+#     ,   element.get('playerClass')
+#     ,   element.get('collectible')
+#     ,   element.get('set')
+#     ,   element.get('rarity')
+#     ,   element.get('cost')
+#     ,   element.get('faction')
+#     ,   element.get('race') # race is redundant, races has all minion race information. keep this until we make sure of that
+#     ,   element.get('attack')
+#     ,   element.get('health')
+#     ,   element.get('durability')
+#     ,   element.get('mercenary')
+#     ,   element.get('mercenaryRole')
+#     ,   element.get('text')
+#     ,   element.get('flavor')
+#     ,   element.get('artist')
+#         ))
     
 
-    # populate races table
+#    populate races table
     # racesArr = element.get('races')
     # if racesArr is not None:
     #     for raceIdNum, race in enumerate(racesArr, raceIdNum + 1):
@@ -168,11 +309,11 @@ for enumerator, element in enumerate(data, 0):
     #             element.get('dbfid')
     #         ,   raceName
     #         ))
-    raceArr = element.get('races')
-    populateListValues(element, raceArr, 'R', insertRace, insertRaceLink, emptyRaceDict)
+    # raceArr = element.get('races')
+    # populateListValues(element, raceArr, 'R', insertRace, insertRaceLink, emptyRaceDict)
 
-    mechanicArr = element.get('mechanics')
-    populateListValues(element, mechanicArr, 'M', insertMechanic, insertMechanicLink, emptyMechanicDict)
+    # mechanicArr = element.get('mechanics')
+    # populateListValues(element, mechanicArr, 'M', insertMechanic, insertMechanicLink, emptyMechanicDict)
 
 
     # populate mechanics table
@@ -196,12 +337,7 @@ for enumerator, element in enumerate(data, 0):
 
 
 
-# Closing file
-f.close()
 
-
-
-cursor.connection.commit()
 
 
 # Initialize the tables in the database for MTG
@@ -235,4 +371,5 @@ cursor.connection.commit()
 # insert_cards()
 # insert_sets()
 
-cursor.close()
+if __name__ == '__main__':
+    main()

@@ -3,10 +3,43 @@
 --cards_HS table stores all card data.
 --All other tables are used to store lists that would violate first normal form.
 
+DROP TABLE IF EXISTS cards_HS_raw CASCADE;
+
+CREATE TABLE IF NOT EXISTS cards_HS_raw(
+    id                           INTEGER PRIMARY KEY
+,   collectible                  INTEGER
+,   slug                         TEXT
+,   classId                      INTEGER
+,   multiClassIds                TEXT    --this is an array of data and should not be TEXT
+,   spellSchoolId                INTEGER
+,   cardTypeId                   INTEGER
+,   cardSetId                    INTEGER
+,   rarityId                     INTEGER  
+,   artistName                   TEXT
+,   manaCost                     INTEGER
+,   "name"                       TEXT
+,   "text"                       TEXT
+,   "image"                      TEXT
+,   imageGold                    TEXT
+,   flavorText                   TEXT
+,   cropImage                    TEXT
+,   keywordIds                   TEXT ---this needs to be a different table i believe
+,   isZilliaxFunctionalModule    BOOLEAN
+,   isZilliaxCosmeticModule      BOOLEAN
+,   copyOfCardId                 INTEGER
+,   attack                       INTEGER
+,   health                       INTEGER
+,   minionTypeId                 INTEGER
+,   childIds                     TEXT   -- this value is an array
+
+);
+
+
 DROP TABLE IF EXISTS cards_HS CASCADE;
 
 CREATE TABLE IF NOT EXISTS cards_HS(
-    card_id            INT PRIMARY KEY
+    card_id            SERIAL PRIMARY KEY
+,   dbfid              INT
 ,   id                 TEXT
 ,   "name"             TEXT
 ,   "type"             TEXT
