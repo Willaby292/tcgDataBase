@@ -21,7 +21,7 @@ app.use(passport.session());
 passport.use(new BnetStrategy({
     clientID: BNET_ID,
     clientSecret: BNET_SECRET,
-    callbackURL: "http://localhost:3000/auth/bnet/callback",
+    callbackURL: "https://dev.battle.net/auth/bnet/callback",
     region: "us"
 }, function(accessToken, refreshToken, profile, done) {
     profile.accessToken = accessToken;
