@@ -4,9 +4,8 @@ import requests # for handling api calls
 import subprocess
 import time
 from collections import defaultdict
-from mtgsdk import Card 
-from mtgsdk import Set
 
+API_TOKEN = 'USndlfuh25NGZOZJmlXdmMaAt6Ctj5JT79'
 
 insertCard = """
     INSERT INTO cards_HS (
@@ -99,7 +98,7 @@ insertKeywordLink = """
 
 def get_posts_cards(**kwargs):
     # this string needs to be created by adding all the criteria needed plus the token that is generated in OAuthToken.js    
-    url = 'https://us.api.blizzard.com/hearthstone/cards?locale=en_US&access_token=UST8Yl2W7341B0zq9Zx5Tkgims2QcrjjKL'
+    url = 'https://us.api.blizzard.com/hearthstone/cards?locale=en_US&access_token='+ API_TOKEN
     for key, value in kwargs.items():
         url = url + "&%s=%s" % (key, value)
     print(url)
@@ -118,7 +117,7 @@ def get_posts_cards(**kwargs):
         return None
 
 def get_posts_meta_data(**kwargs):
-    url = 'https://us.api.blizzard.com/hearthstone/metadata?locale=en_US&access_token=USySTrAtR6Ads4rR9qRY4FTF7TGsEQJs4z'
+    url = 'https://us.api.blizzard.com/hearthstone/metadata?locale=en_US&access_token=' + API_TOKEN
     for key, value in kwargs.items():
         url = url + "&%s=%s" % (key, value)
     print(url)
