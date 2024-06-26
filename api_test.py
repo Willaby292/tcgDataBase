@@ -113,8 +113,6 @@ def check_card_search_data():
         for card in CardResponse.get('cards'):
             for key in card:
                 if key not in uniqueKeysCards:
-                    if key == 'runeCost':
-                        print('stop')
                     uniqueKeysCards[key] = str(type(card.get(key)))[8:-2]
     print('number of keys: '+ str(len(uniqueKeysCards)))
     for enu, i in enumerate(uniqueKeysCards, 1):
@@ -131,7 +129,7 @@ def main():
     #check_meta_data()
     #check_bg_card_search_data()
     #CardResponse = get_posts_cards(collectible='0,1')
-    check_card_search_data()
+    #check_card_search_data()
     print('done')
 
 if __name__ == '__main__':

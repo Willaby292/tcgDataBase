@@ -6,142 +6,202 @@
 DROP TABLE IF EXISTS cards_HS CASCADE;
 
 CREATE TABLE IF NOT EXISTS cards_HS(
-    id                           INTEGER PRIMARY KEY
-,   collectible                  INTEGER --need to pull cards with collectable = 0
-,   slug                         TEXT
-,   classId                      INTEGER --need to create new table which maps class id to a class name. multiclass cards seem to take the first class id in their list of classes. triclass cards seem to take the nuetral class id
---,   multiClassIds                TEXT   --list
-,   spellSchoolId                INTEGER --need to map id to spellschool name
-,   cardTypeId                   INTEGER -- need to map card type id to card type name
-,   cardSetId                    INTEGER --needs mapping
-,   rarityId                     INTEGER --needs mapping
-,   artistName                   TEXT
-,   manaCost                     INTEGER
-,   "name"                       TEXT
-,   "text"                       TEXT
-,   "image"                      TEXT
-,   imageGold                    TEXT
-,   flavorText                   TEXT
-,   cropImage                    TEXT
---,   keywordIds                   TEXT   --list
-,   isZilliaxFunctionalModule    BOOLEAN
-,   isZilliaxCosmeticModule      BOOLEAN
-,   copyOfCardId                 INTEGER --this data seems to be a remap to the card that it was copied from
-,   health                       INTEGER
-,   attack                       INTEGER
-,   minionTypeId                 INTEGER --needs a map to minion type name
---,   childIds                     TEXT   --list
-,   armor                        INTEGER
---,   multiTypeIds                 TEXT   --list
-,   "durability"                 INTEGER
---,   runeCost                     TEXT   --dictionary
-,   parentId                     INTEGER --this seems to be the id of the card who is the actual parent of the character in the card. IE magni bronzebeards parent id is 7 and his parent is gromash? I believe most of the parent IDs refrence uncollectible cards
-,   bannedFromSideboard          INTEGER --should be boolean? seems like all banned from sideboard cards are 1 and everything else is null
-,   maxSideboardCards            INTEGER
+    cardId                          INT PRIMARY KEY
+,   cardName                        TEXT
+,   manaCost                        INT
+,   cardText                        TEXT
+,   armor                           INT
+,   collectible                     INT
+,   flavorText                      TEXT
+,   cardImage                       TEXT
+,   imageGold                       TEXT
+,   cropImage                       TEXT
+,   artistName                      TEXT
+,   slug                            TEXT
+,   classId                         INT
+,   cardTypeId                      INT
+,   cardSetId                       INT
+,   rarityId                        INT
+,   minionTypeId                    INT
+,   spellSchoolId                   INT
+,   copyOfCardId                    INT
+,   parentId                        INT
+,   isZilliaxFunctionalModule       BOOLEAN
+,   isZilliaxCosmeticModule         BOOLEAN
+,   bannedFromSideboard             INT    ---after database is set up check to see if there are any non 1 or 0 values
+,   maxSideCard                     INT
 );
-
 
 DROP TABLE IF EXISTS classes_HS CASCADE;
 
 CREATE TABLE IF NOT EXISTS classes_HS(
-    class_id                    INTEGER PRIMARY KEY
-,   class_name                  TEXT
-,   slug                        TEXT
-,   hero_card_id                INTEGER
-,   hero_power_card_id          INTEGER
-,   alternative_hero_card_ids   INTEGER -- list this needs to be its own table
-);
+    classId                 INT PRIMARY KEY
+,   className               TEXT
+,   heroPowerCardId         INT
+,   slug                    TEXT
+)
 
-DROP TABLE IF EXISTS classes_link_HS CASCADE;
+DROP TABLE IF EXISTS classes_link_HS
 
-CREATE TABLE IF NOT EXISTS classes_link_HS(
-    card_id            INTEGER
-,   class_id           INTEGER 
-,   FOREIGN KEY(card_id)
-        REFERENCES cards_HS(id)
-,   FOREIGN KEY(class_id)
-        REFERENCES classes_HS(class_id)
-);
+CREATE TABLE IF NOT EXISTS  classes_link_HS(
+    cardId      INT REFERENCES card_HS(cardId)
+,   classId     INT REFERENCES classes_HS(classId)
+)
 
-DROP TABLE IF EXISTS keywords_HS CASCADE;
+DROP TABLE IF EXISTS rarities_HS
 
-CREATE TABLE IF NOT EXISTS keywords_HS(
-    keyword_id        TEXT PRIMARY KEY
-,   keyword_name      TEXT
-);
+CREATE TABLE IF NOT EXISTS rarities_HS(
+    rarityId               INT PRIMARY KEY
+,   craftingCostNormal     INT
+,   craftingCostGolden     INT
+,   dustValueNormal        INT   
+,   dustValueGolden        INT
+,   rarityName             TEXT
+,   slug                   TEXT    
+)
 
-DROP TABLE IF EXISTS keywords_link_HS CASCADE;
+DROP TABLE IF EXISTS battlegrounds_card_data_HS
 
-CREATE TABLE IF NOT EXISTS keywords_link_HS(
-    card_id                 INTEGER 
-,   keyword_id              TEXT
-,   FOREIGN KEY(card_id)
-        REFERENCES cards_HS(id)
-,   FOREIGN KEY(keyword_id)
-        REFERENCES keywords_HS(keyword_id)
-);
+CREATE TABLE IF NOT EXISTS battlegrounds_card_data_HS(
+    bgId                    SERIAL PRIMARY KEY
+,   cardId                  INT REFERENCES cards_HS
+,   tier                    INT
+,   isHero                  BOOLEAN
+,   isQuest                 BOOLEAN
+,   isReward                BOOLEAN
+,   isDuosOnly              BOOLEAN
+,   isSolosOnly             BOOLEAN
+,   upgradedId              INT
+,   cardImage               TEXT
+,   imageGold               TEXT
+)
 
-DROP TABLE IF EXISTS referenced_tags_HS CASCADE;
+DROP TABLE IF EXISTS sets_HS
 
-CREATE TABLE IF NOT EXISTS referenced_tags_HS(
-    tag_id             INTEGER PRIMARY KEY
-,   tag_name           TEXT
-);
+CREATE TABLE IF NOT EXISTS sets_HS(
+    setId                               INT PRIMARY KEY
+,   setName                             TEXT
+,   isHyped                             BOOLEAN
+,   setType                             TEXT
+,   collectibleCount                    INT
+,   collectibleRevealedCount            INT
+,   nonCollectibleCount                 INT
+,   nonCollectibleReavealedCount        INT
+,   slug                                TEXT
+)
 
-DROP TABLE IF EXISTS referenced_tags_link_HS CASCADE;
+DROP TABLE IF EXISTS set_alias_HS
 
-CREATE TABLE IF NOT EXISTS referenced_tags_link_HS(
-    card_id                 INTEGER
-,   tag_id             INTEGER
-,   FOREIGN KEY(card_id)
-        REFERENCES cards_HS(id)
-,   FOREIGN KEY(tag_id)
-        REFERENCES referenced_tags_HS(tag_id)
-);
+CREATE TABLE IF NOT EXISTS set_alias_HS(
+    setId       INT REFERENCES sets_HS(setId)
+,   aliasId     INT
+)
 
-DROP TABLE IF EXISTS counterpart_cards_HS CASCADE;
+DROP TABLE IF EXISTS set_groups_HS
 
-CREATE TABLE IF NOT EXISTS counterpart_cards_HS(
-    id_main           INTEGER
-,   id_counterpart    INTEGER
-,   FOREIGN KEY(id_main)
-        REFERENCES cards_HS(id)
-,   FOREIGN KEY(id_counterpart)
-        REFERENCES cards_HS(id)
-);
+CREATE TABLE IF NOT EXISTS set_groups_HS(
+    setGroupId          INT PRIMARY KEY
+,   setGroupName        TEXT
+,   isStandard          BOOLEAN
+,   svg                 TEXT
+,   icon                TEXT
+,   year                INT
+,   yearRange           TEXT
+,   slug                TEXT
 
-DROP TABLE IF EXISTS races_HS CASCADE;
+)
 
-CREATE TABLE IF NOT EXISTS races_HS(
-    race_id     TEXT PRIMARY KEY
-,   race_name   TEXT
-);
+DROP TABLE IF EXISTS rune_cost_HS
 
-DROP TABLE IF EXISTS races_link_HS CASCADE;
+CREATE TABLE IF NOT EXISTS rune_cost_HS(
+    card_id              INT REFERENCES cards_HS(cardId)
+,   bloodRuneCount       INT
+,   frostRuneCount       INT
+,   unholyRuneCount      INT
+)
 
-CREATE TABLE IF NOT EXISTS races_link_HS(
-    card_id             INTEGER
-,   race_id            TEXT
-,   FOREIGN KEY(card_id)
-        REFERENCES cards_HS(id)
-,   FOREIGN KEY(race_id)
-        REFERENCES races_HS(race_id)
-);
+DROP TABLE IF EXISTS minion_types_HS CASCADE;
 
-DROP TABLE IF EXISTS spellschools_HS CASCADE;
+CREATE TABLE IF NOT EXISTS minion_types_HS(
+    minionTypeId                 INT PRIMARY KEY
+,   minionTypeName               TEXT
+,   slug                         TEXT
+)
 
-CREATE TABLE IF NOT EXISTS spellschools_HS(
-    spellschool_id     INTEGER PRIMARY KEY
-,   spellschool_name   TEXT
-);
+DROP TABLE IF EXISTS minion_types_link_HS
 
-DROP TABLE IF EXISTS spellschools_link_HS CASCADE;
+CREATE TABLE IF NOT EXISTS  minion_types_link_HS(
+    cardId           INT REFERENCES card_HS(cardId)
+,   minionTypeId     INT REFERENCES minion_types_HS(minionTypeId)
+)
 
-CREATE TABLE IF NOT EXISTS spellschools_link_HS(
-    card_id                 INTEGER
-,   spellschool_id     INTEGER
-,   FOREIGN KEY(card_id)
-        REFERENCES cards_HS(id)
-,   FOREIGN KEY(spellschool_id)
-        REFERENCES spellschools_HS(spellschool_id)
-);
+DROP TABLE IF EXISTS minion_types_link_game_modes_HS
+
+CREATE TABLE IF NOT EXISTS  minion_types_link_game_modes_HS(
+    gameModeId           INT REFERENCES game_modes_HS(gameModeId)
+,   minionTypeId         INT REFERENCES minion_types_HS(minionTypeId)
+)
+
+DROP TABLE IF EXISTS game_modes_HS
+
+CREATE TABLE IF NOT EXISTS  game_modes_HS(
+    gameModeId      INT PRIMARY KEY
+,   gameModeName    TEXT
+,   slug            TEXT
+)
+
+DROP TABLE IF EXISTS keywords_HS
+
+CREATE TABLE IF NOT EXISTS  keywords_HS(
+    keywordId       INT PRIMARY KEY
+,   keywordName     TEXT
+,   keywordText     TEXT
+,   refText         TEXT
+,   slug            TEXT
+)
+
+DROP TABLE IF EXISTS keywords_link_game_modes_HS
+
+CREATE TABLE IF NOT EXISTS  keywords_link_game_modes_HS(
+    gameModeId      INT REFERENCES game_modes_HS(gameModeId)
+,   keywordId       INT REFERENCES keywords_HS(keywordId)
+)
+
+DROP TABLE IF EXISTS types_HS
+
+CREATE TABLE IF NOT EXISTS  types_HS(
+    typeId          INT PRIMARY KEY
+,   typeName        TEXT
+,   slug            TEXT
+)
+
+DROP TABLE IF EXISTS types_link_game_modes_HS
+
+CREATE TABLE IF NOT EXISTS  types_link_game_modes_HS(
+    gameModeId      INT REFERENCES game_modes_HS(gameModeId)
+,   typeId           INT REFERENCES types_HS(typeId)
+)
+
+DROP TABLE IF EXISTS spell_schools_HS
+
+CREATE TABLE IF NOT EXISTS  spell_schools_HS(
+    spellSchoolId       INT PRIMARY KEY
+,   spellSchoolName     TEXT
+,   slug                TEXT
+)
+
+
+DROP TABLE IF EXISTS card_remap_HS
+
+CREATE TABLE IF NOT EXISTS  card_remap_HS(
+    cardSeekingChildId    INT REFERENCES card_HS(cardId)
+,   childId               INT
+)
+
+DROP TABLE IF EXISTS bg_game_modes_HS
+
+CREATE TABLE IF NOT EXISTS  bg_game_modes_HS(
+    bgGameModeId    INT PRIMARY KEY
+,   bgGameModeName  TEXT
+,   slug            TEXT
+)
