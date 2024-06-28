@@ -3,12 +3,15 @@ import json
 import requests # for handling api calls
 import subprocess
 import time
+import os
 from collections import defaultdict
+from dotenv import load_dotenv
 
-API_TOKEN = 'USndlfuh25NGZOZJmlXdmMaAt6Ctj5JT79'
+load_dotenv()
+API_TOKEN = os.getenv('API_TOKEN')
 
 def get_posts_cards(**kwargs): #set collectable=0,1 to see all cards
-    # this string needs to be created by adding all the criteria needed plus the token that is generated in OAuthToken.js    
+    # this string needs to be created by adding all the criteria needed plus the token that is generated in OAuthToken.js
     url = 'https://us.api.blizzard.com/hearthstone/cards?locale=en_US&access_token='+API_TOKEN
     for key, value in kwargs.items():
         url = url + "&%s=%s" % (key, value)
@@ -43,7 +46,7 @@ def get_posts_meta_data(**kwargs):
     except requests.exceptions.RequestException as e:
         print('Error:', e)
         return None
-    
+
 
 def get_posts_generic(url):
     url += API_TOKEN
@@ -60,7 +63,7 @@ def get_posts_generic(url):
         return None
 
 
-def check_meta_data():  
+def check_meta_data():
     response = get_posts_meta_data()
     del response['arenaIds']
     del response['filterableFields']
@@ -87,7 +90,7 @@ def check_bg_card_search_data():
     uniqueKeys = {}
     uniqueKeysMain = {}
     for entry in BGResponse:
-        for card in BGResponse.get('cards'):   
+        for card in BGResponse.get('cards'):
             for keyMain in card:
                 if keyMain not in uniqueKeysMain:
                      uniqueKeysMain[keyMain] = str(type(card.get(keyMain)))[8:-2]
@@ -106,11 +109,11 @@ def check_bg_card_search_data():
 def check_card_search_data():
     pageCount = get_posts_cards(collectible='0,1').get('pageCount')
     uniqueKeysCards = {}
-    altHeros = [2827, 46116, 53187, 57757, 61596, 61886, 64732, 67519] #the last 5 of these values are missing from the cards response from the api. these were random and implys that we are missing a lot more
-    altHeroNames = []                                                   # it seems like the ones that are missing are differnt arts for uther
-    for currPage in range(1, pageCount):
+    for currPage in range(1, pageCount + 1):
         CardResponse = get_posts_cards(collectible='0,1',page=currPage)
         for card in CardResponse.get('cards'):
+            if card.get('slug') == '98576-accord-o-tron':
+                print('stop')
             for key in card:
                 if key not in uniqueKeysCards:
                     uniqueKeysCards[key] = str(type(card.get(key)))[8:-2]
@@ -118,9 +121,9 @@ def check_card_search_data():
     for enu, i in enumerate(uniqueKeysCards, 1):
         print(str(enu) + ': '+str(i) + ' -- ' + str(uniqueKeysCards.get(i)))
 
-    
 
- 
+
+
 
 def main():
 
@@ -129,7 +132,7 @@ def main():
     #check_meta_data()
     #check_bg_card_search_data()
     #CardResponse = get_posts_cards(collectible='0,1')
-    #check_card_search_data()
+    check_card_search_data()
     print('done')
 
 if __name__ == '__main__':
