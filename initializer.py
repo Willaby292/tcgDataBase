@@ -11,11 +11,15 @@ load_dotenv()
 PSQL_PASSWORD = os.getenv('PSQL_PASSWORD')
 
 
+# TODO change camel case to snake case in SQL
+# TODO change all instances of Spellschool to SpellSchool. idk if its actually an issue
+
 # Programatic authentication has not been set up. To get API token go to 'https://develop.battle.net/documentation/hearthstone/game-data-apis'.
 # Use the TRY IT button on one of the example api requests and then copy and paste in the token at the end of the given url.
 # If the TRY IT button take you to a page that says state parameter not provided simply add &state='' at the end of the url.
 API_TOKEN = os.getenv('API_TOKEN')
 
+###############################################################
 insertCard = """
     INSERT INTO cards_HS (
         cardId
@@ -50,7 +54,51 @@ insertCard = """
     );
 """
 
-insertBGData = """
+insertClasses = """
+    INSERT INTO classes_HS(
+        classId
+    ,   heroCardId
+    ,   className
+    ,   heroPowerCardId
+    ,   slug
+    ) VALUES(
+        %s, %s, %s, %s, %s
+    )
+"""
+
+insertClassesLink = """
+    INSERT INTO classes_link_HS(
+        cardId
+    ,   classId
+    ) VALUES(
+        %s, %s
+    )
+"""
+
+insertAlternateHeros = """
+    INSERT INTO alternate_heros_HS(
+        classId
+    ,   altHeroCardId
+    ) VALUES(
+        %s, %s
+    )
+"""
+
+insertRarities = """
+    INSERT INTO rarities_HS(
+        rarityId
+    ,   craftingCostNormal
+    ,   craftingCostGolden
+    ,   dustValueNormal
+    ,   dustValueGolden
+    ,   rarityName
+    ,   slug
+    ) VALUES(
+        %s, %s, %s, %s, %s, %s, %s
+    )
+"""
+
+insertBGCards = """
     INSERT INTO bg_cards_HS(
         cardId
     ,   tier
@@ -67,7 +115,186 @@ insertBGData = """
     )
 """
 
+insertSetGroups = """
+    INSERT INTO set_groups_HS(
+        setGroupName
+    ,   isStandard
+    ,   svg
+    ,   icon
+    ,   year
+    ,   yearRange
+    ,   slug
+    ) VALUES(
+        %s, %s, %s, %s, %s, %s, %s
+    )
+"""
 
+insertSets = """
+    INSERT INTO sets_HS(
+        setId
+    ,   setName
+    ,   isHyped
+    ,   setType
+    ,   collectibleCount
+    ,   collectibleRevealedCount
+    ,   nonCollectibleCount
+    ,   nonCollectibleReavealedCount
+    ,   slug
+    ) VALUES(
+        %s, %s, %s, %s, %s, %s, %s, %s, %s
+    )
+"""
+
+insertSetsLinkSetGroups = """
+    INSERT INTO sets_link_set_groups_HS(
+        setId
+    ,   setGroupId
+    ) VALUES(
+        %s, %s
+    )
+"""
+
+
+insertSetsAlias = """
+    INSERT INTO sets_alias_HS(
+        setId
+    ,   aliasId
+    ) VALUES(
+        %s, %s
+    )
+"""
+
+insertRuneCosts = """
+    INSERT INTO rune_costs_HS(
+        card_id
+    ,   bloodRuneCount
+    ,   frostRuneCount
+    ,   unholyRuneCount
+    ) VALUES(
+        %s, %s, %s, %s
+    )
+"""
+
+insertMinionTypes = """
+    INSERT INTO minion_types_HS(
+        minionTypeId
+    ,   minionTypeName
+    ,   slug
+    ) VALUES(
+        %s, %s, %s
+    )
+"""
+
+insertMinionTypesLink = """
+    INSERT INTO minion_types_link_HS(
+        cardId
+    ,   minionTypeId
+    ) VALUES(
+        %s, %s
+    )
+"""
+
+insertGameModes = """
+    INSERT INTO game_modes_HS(
+        gameModeId
+    ,   gameModeName
+    ,   slug
+    ) VALUES(
+        %s, %s, %s,
+    )
+"""
+
+insertMinionTypesLinkGameModes = """
+    INSERT INTO minion_types_link_game_modes_HS(
+        gameModeId
+    ,   minionTypeId
+    ) VALUES(
+        %s, %s
+    )
+"""
+
+insertKeywords = """
+    INSERT INTO keywords_HS(
+        keywordId
+    ,   keywordName
+    ,   keywordText
+    ,   refText
+    ,   slug
+    ) VALUES(
+        %s, %s, %s, %s, %s
+    )
+"""
+
+insertKeywordsLink = """
+    INSERT INTO keywords_link_cards_HS(
+        cardsId
+    ,   keywordId
+    ) VALUES(
+        %s, %s
+    )
+"""
+
+insertKeywordsLinkGameModes = """
+    INSERT INTO keywords_link_game_modes_HS(
+        gameModeId
+    ,   keywordId
+    ) VALUES(
+        %s, %s
+    )
+"""
+
+insertTypes = """
+    INSERT INTO types_HS(
+        typeId
+    ,   typeName
+    ,   slug
+    ) VALUES(
+        %s, %s, %s
+    )
+"""
+
+insertTypesLinkGameModes = """
+    INSERT INTO types_link_game_modes_HS(
+        gameModeId
+    ,   typeId
+    ) VALUES(
+        %s, %s
+    )
+"""
+
+insertSpellSchools = """
+    INSERT INTO spell_schools_HS(
+        spellSchoolId
+    ,   spellSchoolName
+    ,   slug
+    ) VALUES(
+        %s, %s, %s
+    )
+"""
+
+insertCardRemap = """
+    INSERT INTO bg_game_modes(
+        cardSeekingChildId
+    ,   childId
+    ) VALUES(
+        %s, %s
+    )
+"""
+
+insertBGGameModes = """
+    INSERT INTO bg_game_modes(
+        bgGameModeId
+    ,   bgGameModeName
+    ,   slug
+    ) VALUES(
+        %s, %s, %s
+    )
+"""
+###############################################################
+
+def to_lower_kebab_case(str):
+    str = str.replace(" ", "-").lower()
+    return str
 
 
 def get_data_from_bnet_api(url, **kwargs):
@@ -90,7 +317,7 @@ def get_data_from_bnet_api(url, **kwargs):
         return None
 
 def import_cards_data(cursor):
-    pageSize = 500
+    pageSize = 200
     cardSearchUrl = 'https://us.api.blizzard.com/hearthstone/cards?locale=en_US&access_token='
     pageCount = get_data_from_bnet_api(cardSearchUrl, collectible='0,1', pageSize=pageSize)
     if pageCount:
@@ -127,6 +354,12 @@ def import_cards_data(cursor):
                 ,   card.get('bannedFromSideboard')
                 ,   card.get('maxSideboardCards')
                 ))
+                if card.get('multiClassIds'): ## have to have classes and cards initialized first
+                    for classes in card.get('multiClassIds'):
+                        cursor.execute(insertClassesLink, (
+                            card.get('id')
+                        ,   classes
+                        ))
     else:
         print('Failed to fetch card data from BNET API. Check api token')
 
@@ -140,7 +373,7 @@ def import_bg_cards_data(cursor):
         for currPage in range(1, pageCount + 1):
             currPageResponse = get_data_from_bnet_api(cardSearchUrl,page=currPage, pageSize=pageSize)
             for card in currPageResponse.get('cards'):
-                cursor.execute(insertBGData, (
+                cursor.execute(insertBGCards, (
                         card.get('id')
                     ,   card.get('battlegrounds').get('tier')
                     ,   card.get('battlegrounds').get('hero')
@@ -152,6 +385,97 @@ def import_bg_cards_data(cursor):
                     ,   card.get('battlegrounds').get('image')
                     ,   card.get('battlegrounds').get('imageGold')
                 ))
+
+
+def import_meta_data(cursor):
+    metaDataSearchUrl = 'https://us.api.blizzard.com/hearthstone/metadata?locale=en_US&access_token='
+    if get_data_from_bnet_api(metaDataSearchUrl):
+        response = get_data_from_bnet_api(metaDataSearchUrl)
+        setGroupsResponse = response.get('setGroups')
+        setsResponse = response.get('sets')
+        for setGroup in setGroupsResponse:
+            cursor.execute(insertSetGroups,(
+                setGroup.get('name')
+            ,   setGroup.get('standard')
+            ,   setGroup.get('svg')
+            ,   setGroup.get('icon')
+            ,   setGroup.get('year')
+            ,   setGroup.get('yearRange')
+            ,   setGroup.get('slug')
+            ))
+        for set in setsResponse:
+            cursor.execute(insertSets,(
+                set.get('id')
+            ,   set.get('name')
+            ,   set.get('hyped')
+            ,   set.get('type')
+            ,   set.get('collectibleCount')
+            ,   set.get('collectibleRevealedCount')
+            ,   set.get('nonCollectibleCount')
+            ,   set.get('nonCollectibleReavealedCount')
+            ,   set.get('slug')
+            ))
+            for setGroup in setGroupsResponse:
+                if to_lower_kebab_case(set.get('name')) in setGroup.get('cardSets'): #the name is in kebab case
+                    cursor.execute("""SELECT setGroupId FROM set_groups_HS WHERE setGroupName = (%s)""", (setGroup.get('name'),))
+                    setGroupId = cursor.fetchone()[0]
+                    cursor.execute(insertSetsLinkSetGroups,(
+                        set.get('id')
+                    ,   setGroupId
+                    ))
+
+        # gameModesResponse = response.get('gameModes')
+        # for gameMode in gameModesResponse:
+        #     cursor.execute(insertGameModes,(
+
+        #     ))
+        # bgGameModesResponse = response.get('bgGameModes')
+        # for bgGameMode in bgGameModesResponse:
+        #     cursor.execute(insertBGGameModes,(
+
+        #     ))
+        # typesResponse = response.get('types')
+        # for type in typesResponse:
+        #     cursor.execute(insertTypes,(
+
+        #     ))
+        # raritiesResponse = response.get('rarities')
+        # for rarity in raritiesResponse:
+        #     cursor.execute(insertRarities,(
+
+        #     ))
+        classesResponse = response.get('classes')
+        for classes in classesResponse:
+            cursor.execute(insertClasses,(
+                classes.get('id')
+            ,   classes.get('cardId')
+            ,   classes.get('name')
+            ,   classes.get('heroPowerCardId')
+            ,   classes.get('slug')
+            ))
+            if classes.get('alternateHeroCardIds'):
+                for altHeroId in classes.get('alternateHeroCardIds'): #can this just be part of the classes Link table? if heros are card then that should work. once i find how to fetch them all from api i will make this into a single link table
+                    cursor.execute(insertAlternateHeros,(
+                        classes.get('id')
+                    ,   altHeroId
+                    ))
+        # minionTypesResponse = response.get('minionTypes')
+        # for minionType in minionTypesResponse:
+        #     cursor.execute(insertMinionTypes,(
+
+        #     ))
+        # spellSchoolsResponse = response.get('spellSchools')
+        # for spellSchool in spellSchoolsResponse:
+        #     cursor.execute(insertSpellSchools,(
+
+        #     ))
+        # keywordsResponse = response.get('keywords')
+        # for keyword in keywordsResponse:
+        #     cursor.execute(insertKeywords,(
+
+        #     ))
+
+
 
 
 def main():
@@ -171,13 +495,18 @@ def main():
     cursor.execute(initialize_sql_HS.read())
 
     # Populate card_HS with data from card search bnet api
+    # TODO GET RUNE COSTS
+    # TODO GET CARD REMAPS
+    # TODO FILL LINK TABLES
     import_cards_data(cursor)
 
     # Add battlegrounds exclusive cards to cards_HS with data from bg card search bnet api
     import_bg_cards_data(cursor)
 
     # TODO Import meta data into supporting tables
-    # import_meta_data(cursor)
+    # TODO GET SET ALIAS
+    # TODO add manual data for set/setgroups?
+    import_meta_data(cursor)
 
     cursor.connection.commit()
     cursor.close()

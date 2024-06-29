@@ -129,10 +129,10 @@ def main():
 
     #make sure I have been doing all the pages of each of these responses
 
-    #check_meta_data()
+    check_meta_data()
     #check_bg_card_search_data()
     #CardResponse = get_posts_cards(collectible='0,1')
-    check_card_search_data()
+    #check_card_search_data()
     print('done')
 
 if __name__ == '__main__':

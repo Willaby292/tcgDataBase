@@ -39,6 +39,7 @@ DROP TABLE IF EXISTS classes_HS CASCADE;
 
 CREATE TABLE IF NOT EXISTS classes_HS(
     classId                 INT PRIMARY KEY
+,   heroCardId              INT
 ,   className               TEXT
 ,   heroPowerCardId         INT
 ,   slug                    TEXT
@@ -49,6 +50,13 @@ DROP TABLE IF EXISTS classes_link_HS;
 CREATE TABLE IF NOT EXISTS  classes_link_HS(
     cardId      INT REFERENCES cards_HS(cardId)
 ,   classId     INT REFERENCES classes_HS(classId)
+);
+
+DROP TABLE IF EXISTS alternate_heros_HS;
+
+CREATE TABLE IF NOT EXISTS  alternate_heros_HS(
+        classId        INT REFERENCES classes_HS(classId)
+    ,   altHeroCardId  INT --REFERENCES cards_HS(cardId) need to find these in api and add to card table. Can do with specific card search but some are still missing like warriors main class card
 );
 
 DROP TABLE IF EXISTS rarities_HS CASCADE;
@@ -79,31 +87,10 @@ CREATE TABLE IF NOT EXISTS bg_cards_HS(
 ,   imageGold               TEXT
 );
 
-DROP TABLE IF EXISTS sets_HS CASCADE;
-
-CREATE TABLE IF NOT EXISTS sets_HS(
-    setId                               INT PRIMARY KEY
-,   setName                             TEXT
-,   isHyped                             BOOLEAN
-,   setType                             TEXT
-,   collectibleCount                    INT
-,   collectibleRevealedCount            INT
-,   nonCollectibleCount                 INT
-,   nonCollectibleReavealedCount        INT
-,   slug                                TEXT
-);
-
-DROP TABLE IF EXISTS set_alias_HS CASCADE;
-
-CREATE TABLE IF NOT EXISTS set_alias_HS(
-    setId       INT REFERENCES sets_HS(setId)
-,   aliasId     INT
-);
-
 DROP TABLE IF EXISTS set_groups_HS CASCADE;
 
 CREATE TABLE IF NOT EXISTS set_groups_HS(
-    setGroupId          INT PRIMARY KEY
+    setGroupId          SERIAL PRIMARY KEY
 ,   setGroupName        TEXT
 ,   isStandard          BOOLEAN
 ,   svg                 TEXT
@@ -113,9 +100,39 @@ CREATE TABLE IF NOT EXISTS set_groups_HS(
 ,   slug                TEXT
 );
 
-DROP TABLE IF EXISTS rune_cost_HS CASCADE;
+DROP TABLE IF EXISTS sets_HS CASCADE;
 
-CREATE TABLE IF NOT EXISTS rune_cost_HS(
+CREATE TABLE IF NOT EXISTS sets_HS(
+    setId                               INT PRIMARY KEY
+,   setName                             TEXT
+,   setGroupId                          INT REFERENCES set_groups_HS(setGroupId)
+,   isHyped                             BOOLEAN
+,   setType                             TEXT
+,   collectibleCount                    INT
+,   collectibleRevealedCount            INT
+,   nonCollectibleCount                 INT
+,   nonCollectibleReavealedCount        INT
+,   slug                                TEXT
+);
+
+DROP TABLE IF EXISTS sets_link_set_groups_HS CASCADE;
+
+CREATE TABLE IF NOT EXISTS  sets_link_set_groups_HS(
+    setId           INT REFERENCES sets_HS(setId)
+,   setGroupId      INT REFERENCES set_groups_HS(setGroupId)
+);
+
+
+DROP TABLE IF EXISTS set_alias_HS CASCADE;
+
+CREATE TABLE IF NOT EXISTS set_alias_HS(
+    setId       INT REFERENCES sets_HS(setId)
+,   aliasId     INT
+);
+
+DROP TABLE IF EXISTS rune_costs_HS CASCADE;
+
+CREATE TABLE IF NOT EXISTS rune_costs_HS(
     card_id              INT REFERENCES cards_HS(cardId)
 ,   bloodRuneCount       INT
 ,   frostRuneCount       INT
@@ -160,6 +177,13 @@ CREATE TABLE IF NOT EXISTS  keywords_HS(
 ,   keywordText     TEXT
 ,   refText         TEXT
 ,   slug            TEXT
+);
+
+DROP TABLE IF EXISTS keywords_link_HS CASCADE;
+
+CREATE TABLE IF NOT EXISTS  keywords_link_HS(
+    cardId          INT REFERENCES cards_HS(cardId)
+,   keywordId       INT REFERENCES keywords_HS(keywordId)
 );
 
 DROP TABLE IF EXISTS keywords_link_game_modes_HS CASCADE;
