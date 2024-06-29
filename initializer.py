@@ -22,33 +22,33 @@ API_TOKEN = os.getenv('API_TOKEN')
 ###############################################################
 insertCard = """
     INSERT INTO cards_HS (
-        cardId
+        card_id
     ,   "name"
-    ,   manaCost
+    ,   mana_cost
     ,   attack
     ,   health
     ,   "durability"
     ,   "text"
     ,   armor
     ,   collectible
-    ,   flavorText
+    ,   flavor_text
     ,   "image"
-    ,   imageGold
-    ,   cropImage
-    ,   artistName
+    ,   image_gold
+    ,   crop_image
+    ,   artist_name
     ,   slug
-    ,   classId
-    ,   cardTypeId
-    ,   cardSetId
-    ,   rarityId
-    ,   minionTypeId
-    ,   spellSchoolId
-    ,   copyOfCardId
-    ,   parentId
-    ,   isZilliaxFunctionalModule
-    ,   isZilliaxCosmeticModule
-    ,   bannedFromSideboard
-    ,   maxSideboardCards
+    ,   class_id
+    ,   card_type_id
+    ,   card_set_id
+    ,   rarity_id
+    ,   minion_type_id
+    ,   spell_school_id
+    ,   copy_of_card_id
+    ,   parent_id
+    ,   is_zilliax_functional_module
+    ,   is_zilliax_cosmetic_module
+    ,   banned_from_sideboard
+    ,   max_sideboard_cards
     ) VALUES (
         %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
     );
@@ -56,10 +56,10 @@ insertCard = """
 
 insertClasses = """
     INSERT INTO classes_HS(
-        classId
-    ,   heroCardId
-    ,   className
-    ,   heroPowerCardId
+        class_id
+    ,   hero_card_id
+    ,   class_name
+    ,   hero_power_card_id
     ,   slug
     ) VALUES(
         %s, %s, %s, %s, %s
@@ -68,8 +68,8 @@ insertClasses = """
 
 insertClassesLink = """
     INSERT INTO classes_link_HS(
-        cardId
-    ,   classId
+        card_id
+    ,   class_id
     ) VALUES(
         %s, %s
     )
@@ -77,8 +77,8 @@ insertClassesLink = """
 
 insertAlternateHeros = """
     INSERT INTO alternate_heros_HS(
-        classId
-    ,   altHeroCardId
+        class_id
+    ,   alt_hero_card_id
     ) VALUES(
         %s, %s
     )
@@ -86,12 +86,12 @@ insertAlternateHeros = """
 
 insertRarities = """
     INSERT INTO rarities_HS(
-        rarityId
-    ,   craftingCostNormal
-    ,   craftingCostGolden
-    ,   dustValueNormal
-    ,   dustValueGolden
-    ,   rarityName
+        rarity_id
+    ,   crafting_cost_normal
+    ,   crafting_cost_golden
+    ,   dust_value_normal
+    ,   dust_value_golden
+    ,   rarity_name
     ,   slug
     ) VALUES(
         %s, %s, %s, %s, %s, %s, %s
@@ -100,16 +100,16 @@ insertRarities = """
 
 insertBGCards = """
     INSERT INTO bg_cards_HS(
-        cardId
+        card_id
     ,   tier
-    ,   isHero
-    ,   isQuest
-    ,   isReward
-    ,   isDuosOnly
-    ,   isSolosOnly
-    ,   upgradeId
+    ,   is_hero
+    ,   is_quest
+    ,   is_reward
+    ,   is_duos_only
+    ,   is_solos_only
+    ,   upgrade_id
     ,   "image"
-    ,   imageGold
+    ,   image_gold
     ) VALUES(
         %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
     )
@@ -117,12 +117,12 @@ insertBGCards = """
 
 insertSetGroups = """
     INSERT INTO set_groups_HS(
-        setGroupName
-    ,   isStandard
+        set_group_name
+    ,   is_standard
     ,   svg
     ,   icon
     ,   year
-    ,   yearRange
+    ,   year_range
     ,   slug
     ) VALUES(
         %s, %s, %s, %s, %s, %s, %s
@@ -131,14 +131,14 @@ insertSetGroups = """
 
 insertSets = """
     INSERT INTO sets_HS(
-        setId
-    ,   setName
-    ,   isHyped
-    ,   setType
-    ,   collectibleCount
-    ,   collectibleRevealedCount
-    ,   nonCollectibleCount
-    ,   nonCollectibleReavealedCount
+        set_id
+    ,   set_name
+    ,   is_hyped
+    ,   set_type
+    ,   collectible_count
+    ,   collectible_revealed_count
+    ,   non_collectible_count
+    ,   non_collectible_reavealed_count
     ,   slug
     ) VALUES(
         %s, %s, %s, %s, %s, %s, %s, %s, %s
@@ -147,8 +147,8 @@ insertSets = """
 
 insertSetsLinkSetGroups = """
     INSERT INTO sets_link_set_groups_HS(
-        setId
-    ,   setGroupId
+        set_id
+    ,   set_group_id
     ) VALUES(
         %s, %s
     )
@@ -157,8 +157,8 @@ insertSetsLinkSetGroups = """
 
 insertSetsAlias = """
     INSERT INTO sets_alias_HS(
-        setId
-    ,   aliasId
+        set_id
+    ,   alias_id
     ) VALUES(
         %s, %s
     )
@@ -167,9 +167,9 @@ insertSetsAlias = """
 insertRuneCosts = """
     INSERT INTO rune_costs_HS(
         card_id
-    ,   bloodRuneCount
-    ,   frostRuneCount
-    ,   unholyRuneCount
+    ,   blood_rune_count
+    ,   frost_rune_count
+    ,   unholy_rune_count
     ) VALUES(
         %s, %s, %s, %s
     )
@@ -177,8 +177,8 @@ insertRuneCosts = """
 
 insertMinionTypes = """
     INSERT INTO minion_types_HS(
-        minionTypeId
-    ,   minionTypeName
+        minion_type_id
+    ,   minion_type_name
     ,   slug
     ) VALUES(
         %s, %s, %s
@@ -187,8 +187,8 @@ insertMinionTypes = """
 
 insertMinionTypesLink = """
     INSERT INTO minion_types_link_HS(
-        cardId
-    ,   minionTypeId
+        card_id
+    ,   minion_type_id
     ) VALUES(
         %s, %s
     )
@@ -196,18 +196,18 @@ insertMinionTypesLink = """
 
 insertGameModes = """
     INSERT INTO game_modes_HS(
-        gameModeId
-    ,   gameModeName
+        game_mode_id
+    ,   game_mode_name
     ,   slug
     ) VALUES(
-        %s, %s, %s,
+        %s, %s, %s
     )
 """
 
 insertMinionTypesLinkGameModes = """
     INSERT INTO minion_types_link_game_modes_HS(
-        gameModeId
-    ,   minionTypeId
+        game_mode_id
+    ,   minion_type_id
     ) VALUES(
         %s, %s
     )
@@ -215,10 +215,10 @@ insertMinionTypesLinkGameModes = """
 
 insertKeywords = """
     INSERT INTO keywords_HS(
-        keywordId
-    ,   keywordName
-    ,   keywordText
-    ,   refText
+        keyword_id
+    ,   keyword_name
+    ,   keyword_text
+    ,   ref_text
     ,   slug
     ) VALUES(
         %s, %s, %s, %s, %s
@@ -227,8 +227,8 @@ insertKeywords = """
 
 insertKeywordsLink = """
     INSERT INTO keywords_link_cards_HS(
-        cardsId
-    ,   keywordId
+        cards_id
+    ,   keyword_id
     ) VALUES(
         %s, %s
     )
@@ -236,8 +236,8 @@ insertKeywordsLink = """
 
 insertKeywordsLinkGameModes = """
     INSERT INTO keywords_link_game_modes_HS(
-        gameModeId
-    ,   keywordId
+        game_mode_id
+    ,   keyword_id
     ) VALUES(
         %s, %s
     )
@@ -245,8 +245,8 @@ insertKeywordsLinkGameModes = """
 
 insertTypes = """
     INSERT INTO types_HS(
-        typeId
-    ,   typeName
+        type_id
+    ,   type_name
     ,   slug
     ) VALUES(
         %s, %s, %s
@@ -255,8 +255,8 @@ insertTypes = """
 
 insertTypesLinkGameModes = """
     INSERT INTO types_link_game_modes_HS(
-        gameModeId
-    ,   typeId
+        game_mode_id
+    ,   type_id
     ) VALUES(
         %s, %s
     )
@@ -264,8 +264,8 @@ insertTypesLinkGameModes = """
 
 insertSpellSchools = """
     INSERT INTO spell_schools_HS(
-        spellSchoolId
-    ,   spellSchoolName
+        spell_school_id
+    ,   spell_school_name
     ,   slug
     ) VALUES(
         %s, %s, %s
@@ -274,8 +274,8 @@ insertSpellSchools = """
 
 insertCardRemap = """
     INSERT INTO bg_game_modes(
-        parentId
-    ,   childId
+        parent_id
+    ,   child_id
     ) VALUES(
         %s, %s
     )
@@ -283,8 +283,8 @@ insertCardRemap = """
 
 insertBGGameModes = """
     INSERT INTO bg_game_modes(
-        bgGameModeId
-    ,   bgGameModeName
+        bg_game_mode_id
+    ,   bg_game_mode_name
     ,   slug
     ) VALUES(
         %s, %s, %s
@@ -317,7 +317,7 @@ def get_data_from_bnet_api(url, **kwargs):
         return None
 
 def import_cards_data(cursor):
-    pageSize = 200
+    pageSize = 500
     cardSearchUrl = 'https://us.api.blizzard.com/hearthstone/cards?locale=en_US&access_token='
     pageCount = get_data_from_bnet_api(cardSearchUrl, collectible='0,1', pageSize=pageSize)
     if pageCount:
@@ -423,18 +423,19 @@ def import_meta_data(cursor):
             ))
             for setGroup in setGroupsResponse:
                 if to_lower_kebab_case(set.get('name')) in setGroup.get('cardSets'): #the name is in kebab case
-                    cursor.execute("""SELECT setGroupId FROM set_groups_HS WHERE setGroupName = (%s)""", (setGroup.get('name'),))
+                    cursor.execute("""SELECT set_group_id FROM set_groups_HS WHERE set_group_name = (%s)""", (setGroup.get('name'),))
                     setGroupId = cursor.fetchone()[0]
                     cursor.execute(insertSetsLinkSetGroups,(
                         set.get('id')
                     ,   setGroupId
                     ))
-
-        # gameModesResponse = response.get('gameModes')
-        # for gameMode in gameModesResponse:
-        #     cursor.execute(insertGameModes,(
-
-        #     ))
+        gameModesResponse = response.get('gameModes')
+        for gameMode in gameModesResponse:
+            cursor.execute(insertGameModes,(
+                gameMode.get('id')
+            ,   gameMode.get('name')
+            ,   gameMode.get('slug')
+            ))
         # bgGameModesResponse = response.get('bgGameModes')
         # for bgGameMode in bgGameModesResponse:
         #     cursor.execute(insertBGGameModes,(
@@ -448,8 +449,8 @@ def import_meta_data(cursor):
         raritiesResponse = response.get('rarities')
         for rarity in raritiesResponse:
             try:
-                craftingCostNormal = min(rarity.get('crafingCost'))
-                craftingCostGold = max(rarity.get('crafingCost'))
+                craftingCostNormal = min(rarity.get('craftingCost'))
+                craftingCostGold = max(rarity.get('craftingCost'))
             except TypeError:
                 craftingCostNormal = None
                 craftingCostGold = None
