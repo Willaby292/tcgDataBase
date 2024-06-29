@@ -12,7 +12,7 @@ PSQL_PASSWORD = os.getenv('PSQL_PASSWORD')
 
 
 # TODO change camel case to snake case in SQL
-# TODO change all instances of Spellschool to SpellSchool. idk if its actually an issue
+# TODO type cast variables when instanced
 
 # Programatic authentication has not been set up. To get API token go to 'https://develop.battle.net/documentation/hearthstone/game-data-apis'.
 # Use the TRY IT button on one of the example api requests and then copy and paste in the token at the end of the given url.
@@ -274,7 +274,7 @@ insertSpellSchools = """
 
 insertCardRemap = """
     INSERT INTO bg_game_modes(
-        cardSeekingChildId
+        parentId
     ,   childId
     ) VALUES(
         %s, %s
@@ -354,12 +354,18 @@ def import_cards_data(cursor):
                 ,   card.get('bannedFromSideboard')
                 ,   card.get('maxSideboardCards')
                 ))
-                if card.get('multiClassIds'): ## have to have classes and cards initialized first
+                if(card.get('classId')):
+                    cursor.execute(insertClassesLink, (## have to have classes and cards initialized first. the entire card import should probably just be run second
+                        card.get('id')
+                    ,   card.get('classId')
+                    ))
+                if card.get('multiClassIds'):
                     for classes in card.get('multiClassIds'):
-                        cursor.execute(insertClassesLink, (
-                            card.get('id')
-                        ,   classes
-                        ))
+                        if classes != card.get('classId'):
+                            cursor.execute(insertClassesLink, (
+                                card.get('id')
+                            ,   classes
+                            ))
     else:
         print('Failed to fetch card data from BNET API. Check api token')
 
@@ -439,12 +445,30 @@ def import_meta_data(cursor):
         #     cursor.execute(insertTypes,(
 
         #     ))
-        # raritiesResponse = response.get('rarities')
-        # for rarity in raritiesResponse:
-        #     cursor.execute(insertRarities,(
-
-        #     ))
-        classesResponse = response.get('classes')
+        raritiesResponse = response.get('rarities')
+        for rarity in raritiesResponse:
+            try:
+                craftingCostNormal = min(rarity.get('crafingCost'))
+                craftingCostGold = max(rarity.get('crafingCost'))
+            except TypeError:
+                craftingCostNormal = None
+                craftingCostGold = None
+            try:
+                dustValueNormal = min(rarity.get('dustValue'))
+                dustValueGold = max(rarity.get('dustValue'))
+            except TypeError:
+                dustValueNormal = None
+                dustValueGold = None
+            cursor.execute(insertRarities,(
+                    rarity.get('id')
+                ,   craftingCostNormal
+                ,   craftingCostGold
+                ,   dustValueNormal
+                ,   dustValueGold
+                ,   rarity.get('name')
+                ,   rarity.get('slug')
+            ))
+        classesResponse = response.get('classes') #need to add dream class for ysera cards id=11
         for classes in classesResponse:
             cursor.execute(insertClasses,(
                 classes.get('id')
@@ -455,10 +479,17 @@ def import_meta_data(cursor):
             ))
             if classes.get('alternateHeroCardIds'):
                 for altHeroId in classes.get('alternateHeroCardIds'): #can this just be part of the classes Link table? if heros are card then that should work. once i find how to fetch them all from api i will make this into a single link table
-                    cursor.execute(insertAlternateHeros,(
+                    cursor.execute(insertAlternateHeros,( #just change insertAlternateHeros to insertClassesLink
                         classes.get('id')
                     ,   altHeroId
                     ))
+        cursor.execute(insertClasses,(
+                11
+            ,   None
+            ,   'Dream'
+            ,   None
+            ,   'dream'
+        ))
         # minionTypesResponse = response.get('minionTypes')
         # for minionType in minionTypesResponse:
         #     cursor.execute(insertMinionTypes,(
@@ -494,6 +525,12 @@ def main():
     initialize_sql_HS = open(r"C:\Users\xwill\OneDrive\Desktop\PythonProjects\tcgDataHouse\initialize_cardsHS.sql",'r')
     cursor.execute(initialize_sql_HS.read())
 
+
+    # TODO Import meta data into supporting tables
+    # TODO GET SET ALIAS
+    # TODO add manual data for set/setgroups?
+    import_meta_data(cursor)
+
     # Populate card_HS with data from card search bnet api
     # TODO GET RUNE COSTS
     # TODO GET CARD REMAPS
@@ -502,11 +539,6 @@ def main():
 
     # Add battlegrounds exclusive cards to cards_HS with data from bg card search bnet api
     import_bg_cards_data(cursor)
-
-    # TODO Import meta data into supporting tables
-    # TODO GET SET ALIAS
-    # TODO add manual data for set/setgroups?
-    import_meta_data(cursor)
 
     cursor.connection.commit()
     cursor.close()

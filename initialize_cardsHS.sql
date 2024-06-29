@@ -50,13 +50,15 @@ DROP TABLE IF EXISTS classes_link_HS;
 CREATE TABLE IF NOT EXISTS  classes_link_HS(
     cardId      INT REFERENCES cards_HS(cardId)
 ,   classId     INT REFERENCES classes_HS(classId)
+,   PRIMARY KEY (cardId, classId)
 );
 
 DROP TABLE IF EXISTS alternate_heros_HS;
 
 CREATE TABLE IF NOT EXISTS  alternate_heros_HS(
-        classId        INT REFERENCES classes_HS(classId)
-    ,   altHeroCardId  INT --REFERENCES cards_HS(cardId) need to find these in api and add to card table. Can do with specific card search but some are still missing like warriors main class card
+    classId        INT REFERENCES classes_HS(classId)
+,   altHeroCardId  INT --REFERENCES cards_HS(cardId) need to find these in api and add to card table. Can do with specific card search but some are still missing like warriors main class card
+,   PRIMARY KEY (classId, altHeroCardId)
 );
 
 DROP TABLE IF EXISTS rarities_HS CASCADE;
@@ -120,6 +122,7 @@ DROP TABLE IF EXISTS sets_link_set_groups_HS CASCADE;
 CREATE TABLE IF NOT EXISTS  sets_link_set_groups_HS(
     setId           INT REFERENCES sets_HS(setId)
 ,   setGroupId      INT REFERENCES set_groups_HS(setGroupId)
+,   PRIMARY KEY (setId, setGroupId)
 );
 
 
@@ -128,12 +131,14 @@ DROP TABLE IF EXISTS set_alias_HS CASCADE;
 CREATE TABLE IF NOT EXISTS set_alias_HS(
     setId       INT REFERENCES sets_HS(setId)
 ,   aliasId     INT
+,   PRIMARY KEY (setId, aliasId)
 );
 
 DROP TABLE IF EXISTS rune_costs_HS CASCADE;
 
 CREATE TABLE IF NOT EXISTS rune_costs_HS(
-    card_id              INT REFERENCES cards_HS(cardId)
+    runeId               SERIAL PRIMARY KEY
+,   card_id              INT REFERENCES cards_HS(cardId)
 ,   bloodRuneCount       INT
 ,   frostRuneCount       INT
 ,   unholyRuneCount      INT
@@ -152,6 +157,7 @@ DROP TABLE IF EXISTS minion_types_link_HS CASCADE;
 CREATE TABLE IF NOT EXISTS  minion_types_link_HS(
     cardId           INT REFERENCES cards_HS(cardId)
 ,   minionTypeId     INT REFERENCES minion_types_HS(minionTypeId)
+,   PRIMARY KEY (cardId, minionTypeId)
 );
 
 DROP TABLE IF EXISTS game_modes_HS CASCADE;
@@ -167,6 +173,7 @@ DROP TABLE IF EXISTS minion_types_link_game_modes_HS CASCADE;
 CREATE TABLE IF NOT EXISTS  minion_types_link_game_modes_HS(
     gameModeId           INT REFERENCES game_modes_HS(gameModeId)
 ,   minionTypeId         INT REFERENCES minion_types_HS(minionTypeId)
+,   PRIMARY KEY (gameModeId, minionTypeId)
 );
 
 DROP TABLE IF EXISTS keywords_HS CASCADE;
@@ -184,6 +191,7 @@ DROP TABLE IF EXISTS keywords_link_HS CASCADE;
 CREATE TABLE IF NOT EXISTS  keywords_link_HS(
     cardId          INT REFERENCES cards_HS(cardId)
 ,   keywordId       INT REFERENCES keywords_HS(keywordId)
+,   PRIMARY KEY (cardId, keywordId)
 );
 
 DROP TABLE IF EXISTS keywords_link_game_modes_HS CASCADE;
@@ -191,6 +199,7 @@ DROP TABLE IF EXISTS keywords_link_game_modes_HS CASCADE;
 CREATE TABLE IF NOT EXISTS  keywords_link_game_modes_HS(
     gameModeId      INT REFERENCES game_modes_HS(gameModeId)
 ,   keywordId       INT REFERENCES keywords_HS(keywordId)
+,   PRIMARY KEY (gameModeId, keywordId)
 );
 
 DROP TABLE IF EXISTS types_HS CASCADE;
@@ -206,6 +215,7 @@ DROP TABLE IF EXISTS types_link_game_modes_HS CASCADE;
 CREATE TABLE IF NOT EXISTS  types_link_game_modes_HS(
     gameModeId      INT REFERENCES game_modes_HS(gameModeId)
 ,   typeId           INT REFERENCES types_HS(typeId)
+,   PRIMARY KEY (gameModeId, typeId)
 );
 
 DROP TABLE IF EXISTS spell_schools_HS CASCADE;
@@ -219,8 +229,9 @@ CREATE TABLE IF NOT EXISTS  spell_schools_HS(
 DROP TABLE IF EXISTS card_remap_HS CASCADE;
 
 CREATE TABLE IF NOT EXISTS  card_remap_HS(
-    cardSeekingChildId    INT REFERENCES cards_HS(cardId)
+    parentId    INT REFERENCES cards_HS(cardId)
 ,   childId               INT
+,   PRIMARY KEY (parentId, childId)
 );
 
 DROP TABLE IF EXISTS bg_game_modes_HS CASCADE;

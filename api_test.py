@@ -107,12 +107,12 @@ def check_bg_card_search_data():
 
 
 def check_card_search_data():
-    pageCount = get_posts_cards(collectible='0,1').get('pageCount')
+    pageCount = get_posts_cards(collectible='0,1', pageSize=300).get('pageCount')
     uniqueKeysCards = {}
     for currPage in range(1, pageCount + 1):
-        CardResponse = get_posts_cards(collectible='0,1',page=currPage)
+        CardResponse = get_posts_cards(collectible='0,1',page=currPage, pageSize=300)
         for card in CardResponse.get('cards'):
-            if card.get('slug') == '98576-accord-o-tron':
+            if card.get('classId') not in (1,2,3,4,5,6,7,8,9,10,12,14, None):
                 print('stop')
             for key in card:
                 if key not in uniqueKeysCards:
@@ -129,10 +129,10 @@ def main():
 
     #make sure I have been doing all the pages of each of these responses
 
-    check_meta_data()
+    #check_meta_data()
     #check_bg_card_search_data()
     #CardResponse = get_posts_cards(collectible='0,1')
-    #check_card_search_data()
+    check_card_search_data()
     print('done')
 
 if __name__ == '__main__':
