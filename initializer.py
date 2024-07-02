@@ -13,6 +13,11 @@ PSQL_PASSWORD = os.getenv('PSQL_PASSWORD')
 
 # TODO change camel case to snake case in SQL
 # TODO type cast variables when instanced
+# TODO find hidden data like hero card data
+# TODO insert or update
+
+# TODO can i add catch blocks to catch foriegn key missing and then add it to the main value
+# The plan for this is to catch execptions on the inserts and put them in a data structure to be handled at the end of the init
 
 # Programatic authentication has not been set up. To get API token go to 'https://develop.battle.net/documentation/hearthstone/game-data-apis'.
 # Use the TRY IT button on one of the example api requests and then copy and paste in the token at the end of the given url.
@@ -156,7 +161,7 @@ insertSetsLinkSetGroups = """
 
 
 insertSetsAlias = """
-    INSERT INTO sets_alias_HS(
+    INSERT INTO set_alias_HS(
         set_id
     ,   alias_id
     ) VALUES(
@@ -206,8 +211,8 @@ insertGameModes = """
 
 insertMinionTypesLinkGameModes = """
     INSERT INTO minion_types_link_game_modes_HS(
-        game_mode_id
-    ,   minion_type_id
+        minion_type_id
+    ,   game_mode_id
     ) VALUES(
         %s, %s
     )
@@ -226,8 +231,8 @@ insertKeywords = """
 """
 
 insertKeywordsLink = """
-    INSERT INTO keywords_link_cards_HS(
-        cards_id
+    INSERT INTO keywords_link_HS(
+        card_id
     ,   keyword_id
     ) VALUES(
         %s, %s
@@ -236,8 +241,8 @@ insertKeywordsLink = """
 
 insertKeywordsLinkGameModes = """
     INSERT INTO keywords_link_game_modes_HS(
-        game_mode_id
-    ,   keyword_id
+        keyword_id
+    ,   game_mode_id
     ) VALUES(
         %s, %s
     )
@@ -255,8 +260,8 @@ insertTypes = """
 
 insertTypesLinkGameModes = """
     INSERT INTO types_link_game_modes_HS(
-        game_mode_id
-    ,   type_id
+        type_id
+    ,   game_mode_id
     ) VALUES(
         %s, %s
     )
@@ -273,7 +278,7 @@ insertSpellSchools = """
 """
 
 insertCardRemap = """
-    INSERT INTO bg_game_modes(
+    INSERT INTO card_remap_HS(
         parent_id
     ,   child_id
     ) VALUES(
@@ -282,7 +287,7 @@ insertCardRemap = """
 """
 
 insertBGGameModes = """
-    INSERT INTO bg_game_modes(
+    INSERT INTO bg_game_modes_HS(
         bg_game_mode_id
     ,   bg_game_mode_name
     ,   slug
@@ -316,44 +321,52 @@ def get_data_from_bnet_api(url, **kwargs):
         print('Error:', e)
         return None
 
+def executeInsertCard(cursor, card):
+    cursor.execute(insertCard, (
+        card.get('id')
+    ,   card.get('name')
+    ,   card.get('manaCost')
+    ,   card.get('attack')
+    ,   card.get('health')
+    ,   card.get('durability')
+    ,   card.get('text')
+    ,   card.get('armor')
+    ,   card.get('collectible')
+    ,   card.get('flavorText')
+    ,   card.get('image')
+    ,   card.get('imageGold')
+    ,   card.get('cropImage')
+    ,   card.get('artistName')
+    ,   card.get('slug')
+    ,   card.get('classId')
+    ,   card.get('cardTypeId')
+    ,   card.get('cardSetId')
+    ,   card.get('rarityId')
+    ,   card.get('minionTypeId')
+    ,   card.get('spellSchoolId')
+    ,   card.get('copyOfCardId')
+    ,   card.get('parentId')
+    ,   card.get('isZilliaxFunctionalModule')
+    ,   card.get('isZilliaxCosmeticModule')
+    ,   card.get('bannedFromSideboard')
+    ,   card.get('maxSideboardCards')
+    ))
+    cursor.connection.commit()
+
+
 def import_cards_data(cursor):
     pageSize = 500
     cardSearchUrl = 'https://us.api.blizzard.com/hearthstone/cards?locale=en_US&access_token='
     pageCount = get_data_from_bnet_api(cardSearchUrl, collectible='0,1', pageSize=pageSize)
+    failedDict = {}
     if pageCount:
         pageCount = pageCount.get('pageCount')
         for currPage in range(1, pageCount + 1):
             currPageResponse = get_data_from_bnet_api(cardSearchUrl, collectible='0,1',page=currPage, pageSize=pageSize)
             for card in currPageResponse.get('cards'):
-                cursor.execute(insertCard, (
-                    card.get('id')
-                ,   card.get('name')
-                ,   card.get('manaCost')
-                ,   card.get('attack')
-                ,   card.get('health')
-                ,   card.get('durability')
-                ,   card.get('text')
-                ,   card.get('armor')
-                ,   card.get('collectible')
-                ,   card.get('flavorText')
-                ,   card.get('image')
-                ,   card.get('imageGold')
-                ,   card.get('cropImage')
-                ,   card.get('artistName')
-                ,   card.get('slug')
-                ,   card.get('classId')
-                ,   card.get('cardTypeId')
-                ,   card.get('cardSetId')
-                ,   card.get('rarityId')
-                ,   card.get('minionTypeId')
-                ,   card.get('spellSchoolId')
-                ,   card.get('copyOfCardId')
-                ,   card.get('parentId')
-                ,   card.get('isZilliaxFunctionalModule')
-                ,   card.get('isZilliaxCosmeticModule')
-                ,   card.get('bannedFromSideboard')
-                ,   card.get('maxSideboardCards')
-                ))
+                if card.get('mercenaryHero'):
+                    break
+                executeInsertCard(cursor, card)
                 if(card.get('classId')):
                     cursor.execute(insertClassesLink, (## have to have classes and cards initialized first. the entire card import should probably just be run second
                         card.get('id')
@@ -366,19 +379,58 @@ def import_cards_data(cursor):
                                 card.get('id')
                             ,   classes
                             ))
+                if card.get('runeCost'):
+                    cursor.execute(insertRuneCosts,(
+                            card.get('id')
+                        ,   card.get('runeCost').get('blood')
+                        ,   card.get('runeCost').get('frost')
+                        ,   card.get('runeCost').get('unholy')
+                    ))
+                if card.get('childIds'):
+                    for childId in card.get('childIds'):
+                        cursor.execute(insertCardRemap, (
+                            card.get('id')
+                        ,   childId
+                        ))
+                if card.get('multiTypeIds'):
+                    for typeId in card.get('multiTypeIds'):
+                        cursor.execute(insertMinionTypesLink, (
+                            card.get('id')
+                        ,   typeId
+                        ))
+                if card.get('keywordIds'):
+                    for keyword in card.get('keywordIds'):
+                        try:
+                            cursor.execute(insertKeywordsLink, (
+                                card.get('id')
+                            ,   keyword
+                            ))
+                        except Exception as e:
+                            failedDict[card.get('id')] = f"{keyword:4} : {card.get('text')}"
+                            cursor.connection.rollback()
+
     else:
         print('Failed to fetch card data from BNET API. Check api token')
+    for i in failedDict:
+        print(f"{i:6} : {failedDict.get(i)}")
+
 
 # these cards are already in the get all cards function above but this gets their battlegrounds information
 def import_bg_cards_data(cursor):
     pageSize = 500
     cardSearchUrl = 'https://us.api.blizzard.com/hearthstone/cards?locale=en_US&gameMode=battlegrounds&access_token='
     pageCount = get_data_from_bnet_api(cardSearchUrl, pageSize=pageSize)
+
     if pageCount:
         pageCount = pageCount.get('pageCount')
         for currPage in range(1, pageCount + 1):
             currPageResponse = get_data_from_bnet_api(cardSearchUrl,page=currPage, pageSize=pageSize)
             for card in currPageResponse.get('cards'):
+                try:
+                    executeInsertCard(cursor, card)
+                except Exception as e:
+                    cursor.connection.rollback()
+
                 cursor.execute(insertBGCards, (
                         card.get('id')
                     ,   card.get('battlegrounds').get('tier')
@@ -391,12 +443,13 @@ def import_bg_cards_data(cursor):
                     ,   card.get('battlegrounds').get('image')
                     ,   card.get('battlegrounds').get('imageGold')
                 ))
+                cursor.connection.commit()
 
 
 def import_meta_data(cursor):
     metaDataSearchUrl = 'https://us.api.blizzard.com/hearthstone/metadata?locale=en_US&access_token='
-    if get_data_from_bnet_api(metaDataSearchUrl):
-        response = get_data_from_bnet_api(metaDataSearchUrl)
+    response = get_data_from_bnet_api(metaDataSearchUrl)
+    if response:
         setGroupsResponse = response.get('setGroups')
         setsResponse = response.get('sets')
         for setGroup in setGroupsResponse:
@@ -421,6 +474,12 @@ def import_meta_data(cursor):
             ,   set.get('nonCollectibleReavealedCount')
             ,   set.get('slug')
             ))
+            if set.get('aliasSetIds'):
+                for alias in set.get('aliasSetIds'):
+                    cursor.execute(insertSetsAlias, (
+                        set.get('id')
+                    ,   alias
+                    ))
             for setGroup in setGroupsResponse:
                 if to_lower_kebab_case(set.get('name')) in setGroup.get('cardSets'): #the name is in kebab case
                     cursor.execute("""SELECT set_group_id FROM set_groups_HS WHERE set_group_name = (%s)""", (setGroup.get('name'),))
@@ -436,16 +495,26 @@ def import_meta_data(cursor):
             ,   gameMode.get('name')
             ,   gameMode.get('slug')
             ))
-        # bgGameModesResponse = response.get('bgGameModes')
-        # for bgGameMode in bgGameModesResponse:
-        #     cursor.execute(insertBGGameModes,(
-
-        #     ))
-        # typesResponse = response.get('types')
-        # for type in typesResponse:
-        #     cursor.execute(insertTypes,(
-
-        #     ))
+        bgGameModesResponse = response.get('bgGameModes')
+        for bgGameMode in bgGameModesResponse:
+            cursor.execute(insertBGGameModes,(
+                bgGameMode.get('id')
+            ,   bgGameMode.get('name')
+            ,   bgGameMode.get('slug')
+            ))
+        typesResponse = response.get('types')
+        for type in typesResponse:
+            cursor.execute(insertTypes,(
+                type.get('id')
+            ,   type.get('name')
+            ,   type.get('slug')
+            ))
+            if type.get('gameModes'):
+                for mode in type.get('gameModes'):
+                    cursor.execute(insertTypesLinkGameModes,(
+                        type.get('id')
+                    ,   mode
+                    ))
         raritiesResponse = response.get('rarities')
         for rarity in raritiesResponse:
             try:
@@ -491,22 +560,41 @@ def import_meta_data(cursor):
             ,   None
             ,   'dream'
         ))
-        # minionTypesResponse = response.get('minionTypes')
-        # for minionType in minionTypesResponse:
-        #     cursor.execute(insertMinionTypes,(
-
-        #     ))
-        # spellSchoolsResponse = response.get('spellSchools')
-        # for spellSchool in spellSchoolsResponse:
-        #     cursor.execute(insertSpellSchools,(
-
-        #     ))
-        # keywordsResponse = response.get('keywords')
-        # for keyword in keywordsResponse:
-        #     cursor.execute(insertKeywords,(
-
-        #     ))
-
+        minionTypesResponse = response.get('minionTypes')
+        for minionType in minionTypesResponse:
+            cursor.execute(insertMinionTypes,(
+                minionType.get('id')
+            ,   minionType.get('name')
+            ,   minionType.get('slug')
+            ))
+            if minionType.get('gameModes'):
+                for gameMode in minionType.get('gameModes'):
+                    cursor.execute(insertMinionTypesLinkGameModes, (
+                        minionType.get('id')
+                    ,   gameMode
+                    ))
+        spellSchoolsResponse = response.get('spellSchools')
+        for spellSchool in spellSchoolsResponse:
+            cursor.execute(insertSpellSchools,(
+                spellSchool.get('id')
+            ,   spellSchool.get('name')
+            ,   spellSchool.get('slug')
+            ))
+        keywordsResponse = response.get('keywords')
+        for keyword in keywordsResponse:
+            cursor.execute(insertKeywords,(
+                keyword.get('id')
+            ,   keyword.get('name')
+            ,   keyword.get('text')
+            ,   keyword.get('refText')
+            ,   keyword.get('slug')
+            ))
+            if keyword.get('gameModes'):
+                for gameMode in keyword.get('gameModes'):
+                    cursor.execute(insertKeywordsLinkGameModes, (
+                        keyword.get('id')
+                    ,   gameMode
+                    ))
 
 
 

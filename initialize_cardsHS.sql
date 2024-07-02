@@ -171,8 +171,8 @@ CREATE TABLE IF NOT EXISTS  game_modes_HS(
 DROP TABLE IF EXISTS minion_types_link_game_modes_HS CASCADE;
 
 CREATE TABLE IF NOT EXISTS  minion_types_link_game_modes_HS(
-    game_mode_id           INT REFERENCES game_modes_HS(game_mode_id)
-,   minion_type_id         INT REFERENCES minion_types_HS(minion_type_id)
+    minion_type_id         INT REFERENCES minion_types_HS(minion_type_id)
+,   game_mode_id           INT REFERENCES game_modes_HS(game_mode_id)
 ,   PRIMARY KEY (game_mode_id, minion_type_id)
 );
 
@@ -197,8 +197,8 @@ CREATE TABLE IF NOT EXISTS  keywords_link_HS(
 DROP TABLE IF EXISTS keywords_link_game_modes_HS CASCADE;
 
 CREATE TABLE IF NOT EXISTS  keywords_link_game_modes_HS(
-    game_mode_id      INT REFERENCES game_modes_HS(game_mode_id)
-,   keyword_id        INT REFERENCES keywords_HS(keyword_id)
+    keyword_id        INT REFERENCES keywords_HS(keyword_id)
+,   game_mode_id      INT REFERENCES game_modes_HS(game_mode_id)
 ,   PRIMARY KEY (game_mode_id, keyword_id)
 );
 
@@ -213,8 +213,8 @@ CREATE TABLE IF NOT EXISTS  types_HS(
 DROP TABLE IF EXISTS types_link_game_modes_HS CASCADE;
 
 CREATE TABLE IF NOT EXISTS  types_link_game_modes_HS(
-    game_mode_id      INT REFERENCES game_modes_HS(game_mode_id)
-,   type_id           INT REFERENCES types_HS(type_id)
+    type_id           INT REFERENCES types_HS(type_id)
+,   game_mode_id      INT REFERENCES game_modes_HS(game_mode_id)
 ,   PRIMARY KEY (game_mode_id, type_id)
 );
 
