@@ -59,6 +59,38 @@ insertCard = """
     );
 """
 
+def executeInsertCard(cursor, card):
+    cursor.execute(insertCard, (
+        card.get('id')
+    ,   card.get('name')
+    ,   card.get('manaCost')
+    ,   card.get('attack')
+    ,   card.get('health')
+    ,   card.get('durability')
+    ,   card.get('text')
+    ,   card.get('armor')
+    ,   card.get('collectible')
+    ,   card.get('flavorText')
+    ,   card.get('image')
+    ,   card.get('imageGold')
+    ,   card.get('cropImage')
+    ,   card.get('artistName')
+    ,   card.get('slug')
+    ,   card.get('classId')
+    ,   card.get('cardTypeId')
+    ,   card.get('cardSetId')
+    ,   card.get('rarityId')
+    ,   card.get('minionTypeId')
+    ,   card.get('spellSchoolId')
+    ,   card.get('copyOfCardId')
+    ,   card.get('parentId')
+    ,   card.get('isZilliaxFunctionalModule')
+    ,   card.get('isZilliaxCosmeticModule')
+    ,   card.get('bannedFromSideboard')
+    ,   card.get('maxSideboardCards')
+    ))
+    cursor.connection.commit()
+
 insertClasses = """
     INSERT INTO classes_HS(
         class_id
@@ -70,6 +102,14 @@ insertClasses = """
         %s, %s, %s, %s, %s
     )
 """
+def executeInsertClasses(cursor, classes):
+    cursor.execute(insertClasses,(
+        classes.get('id')
+    ,   classes.get('cardId')
+    ,   classes.get('name')
+    ,   classes.get('heroPowerCardId')
+    ,   classes.get('slug')
+    ))
 
 insertClassesLink = """
     INSERT INTO classes_link_HS(
@@ -80,6 +120,8 @@ insertClassesLink = """
     )
 """
 
+def executeInsertClassesLink(cursor , x):
+
 insertAlternateHeros = """
     INSERT INTO alternate_heros_HS(
         class_id
@@ -88,6 +130,8 @@ insertAlternateHeros = """
         %s, %s
     )
 """
+
+def executeInsertClassesLink(cursor , x):
 
 insertRarities = """
     INSERT INTO rarities_HS(
@@ -297,6 +341,11 @@ insertBGGameModes = """
 """
 ###############################################################
 
+def debugKeywords(response):
+    for keyword in response.get('keywords'):
+        print(keyword.get('name'))
+
+
 def to_lower_kebab_case(str):
     str = str.replace(" ", "-").lower()
     return str
@@ -320,38 +369,6 @@ def get_data_from_bnet_api(url, **kwargs):
     except requests.exceptions.RequestException as e:
         print('Error:', e)
         return None
-
-def executeInsertCard(cursor, card):
-    cursor.execute(insertCard, (
-        card.get('id')
-    ,   card.get('name')
-    ,   card.get('manaCost')
-    ,   card.get('attack')
-    ,   card.get('health')
-    ,   card.get('durability')
-    ,   card.get('text')
-    ,   card.get('armor')
-    ,   card.get('collectible')
-    ,   card.get('flavorText')
-    ,   card.get('image')
-    ,   card.get('imageGold')
-    ,   card.get('cropImage')
-    ,   card.get('artistName')
-    ,   card.get('slug')
-    ,   card.get('classId')
-    ,   card.get('cardTypeId')
-    ,   card.get('cardSetId')
-    ,   card.get('rarityId')
-    ,   card.get('minionTypeId')
-    ,   card.get('spellSchoolId')
-    ,   card.get('copyOfCardId')
-    ,   card.get('parentId')
-    ,   card.get('isZilliaxFunctionalModule')
-    ,   card.get('isZilliaxCosmeticModule')
-    ,   card.get('bannedFromSideboard')
-    ,   card.get('maxSideboardCards')
-    ))
-    cursor.connection.commit()
 
 
 def import_cards_data(cursor):
@@ -406,14 +423,17 @@ def import_cards_data(cursor):
                             ,   keyword
                             ))
                         except Exception as e:
-                            failedDict[card.get('id')] = f"{keyword:4} : {card.get('text')}"
+                            if card.get('id') in failedDict:
+                                failedDict[card.get('id')].insert(0, keyword)
+                            else:
+                                failedDict[card.get('id')] = [keyword, card.get('text')]
                             cursor.connection.rollback()
 
     else:
         print('Failed to fetch card data from BNET API. Check api token')
-    for i in failedDict:
-        print(f"{i:6} : {failedDict.get(i)}")
-
+    #for card in failedDict:
+        #print(f"{card:6}: {failedDict.get(card)")
+    print('keywords are broken reminder')
 
 # these cards are already in the get all cards function above but this gets their battlegrounds information
 def import_bg_cards_data(cursor):
@@ -540,13 +560,7 @@ def import_meta_data(cursor):
             ))
         classesResponse = response.get('classes') #need to add dream class for ysera cards id=11
         for classes in classesResponse:
-            cursor.execute(insertClasses,(
-                classes.get('id')
-            ,   classes.get('cardId')
-            ,   classes.get('name')
-            ,   classes.get('heroPowerCardId')
-            ,   classes.get('slug')
-            ))
+            executeInsertClasses(cursor, classes)
             if classes.get('alternateHeroCardIds'):
                 for altHeroId in classes.get('alternateHeroCardIds'): #can this just be part of the classes Link table? if heros are card then that should work. once i find how to fetch them all from api i will make this into a single link table
                     cursor.execute(insertAlternateHeros,( #just change insertAlternateHeros to insertClassesLink

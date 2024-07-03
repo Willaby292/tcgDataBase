@@ -186,7 +186,7 @@ CREATE TABLE IF NOT EXISTS  keywords_HS(
 ,   slug             TEXT
 );
 
-DROP TABLE IF EXISTS keywords_link_HS CASCADE;
+DROP TABLE IF EXISTS keywords_link_HS CASCADE; -- ~ TODO 50-100 cards currently have unmatched keywords but I am ignoring them for now
 
 CREATE TABLE IF NOT EXISTS  keywords_link_HS(
     card_id          INT REFERENCES cards_HS(card_id)
