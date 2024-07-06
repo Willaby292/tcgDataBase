@@ -1,5 +1,117 @@
-body{
+body {
+    display: flex;
+    flex-direction: column; /* Stack elements vertically */
+    align-items: center; /* Center horizontally */
+    height: 100vh; /* Full height of the viewport */
     margin: 0;
-    background: pink;
+    background-color: #1f1b19; /* Black background for better visibility */
+    font-family: 'Kode Mono', monospace; /* Apply Kode Mono font */
+}
+
+.navbar {
+    width: 100%; /* Full width of the viewport */
+    background-color: #111; /* Black background */
+    display: flex; /* Use flexbox for horizontal layout */
+    justify-content: space-around; /* Space items evenly */
+    align-items: center; /* Center items vertically */
+    padding: 10px 0; /* Padding for spacing */
+    position: fixed; /* Fixed at the top */
+    top: 0;
+    left: 0;
+    z-index: 1; /* Stay on top of other content */
+}
+
+/* The navigation menu links */
+.navbar a {
+    text-decoration: none;
+    font-size: 20px; /* Adjust font size as needed */
+    color: #818181;
+    padding: 10px 20px; /* Adjust padding as needed */
+}
+
+/* When you mouse over the navigation links, change their color */
+.navbar a:hover {
+    color: #f1f1f1;
+}
+
+/* Main container to hold title and search bar */
+.main-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 60px; /* Space for fixed navbar */
+}
+
+.title-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column; /* Stack title and search bar vertically */
+    margin-bottom: 20px; /* Space between the title and search bar */
+    margin-top: 3em;
+}
+
+.title {
     text-align: center;
+}
+
+.tcg {
+    color: white;
+    font-size: 4em;
+    padding-right: 10px;
+}
+
+.datahouse {
+    color: white;
+    font-size: 2em;
+}
+
+.content-container {
+    display: flex;
+    flex-direction: column; /* Stack search bar and card image vertically */
+    align-items: center; /* Center items horizontally */
+}
+
+.search-container {
+    display: flex;
+    align-items: center; /* Center items vertically */
+    margin-bottom: 20px; /* Space between search bar and card image */
+}
+
+.search-bar {
+    width: 300px; /* Adjust the width as needed */
+    padding: 10px;
+    font-size: 1em;
+    border: 2px solid #333;
+    border-radius: 5px 0 0 5px;
+    outline: none;
+    font-family: 'Kode Mono', monospace; /* Ensure the font is applied */
+}
+
+.search-button {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: 2px solid #333;
+    border-left: none;
+    border-radius: 0 5px 5px 0;
+    background-color: #333;
+    color: white;
+    cursor: pointer;
+    font-family: 'Kode Mono', monospace; /* Ensure the font is applied */
+}
+
+.search-button:hover {
+    background-color: #555;
+}
+
+.card-image-container {
+    display: flex;
+    align-items: center; /* Center image vertically */
+}
+
+.card-image {
+    width: 20em; /* Adjust size as needed */
+    height: auto; /* Maintain aspect ratio */
 }
